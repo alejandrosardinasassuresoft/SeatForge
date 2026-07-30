@@ -10,6 +10,13 @@ Rails.application.routes.draw do
       resources :sessions, only: [] do
         resources :registrations, only: [:create]
       end
+
+      resources :registrations, only: [] do
+        member do
+          post :confirm
+          post :cancel
+        end
+      end
     end
   end
 
