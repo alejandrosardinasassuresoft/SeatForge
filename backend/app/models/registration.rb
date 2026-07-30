@@ -1,12 +1,17 @@
 class Registration < ApplicationRecord
   STATUSES = %w[held confirmed waitlisted cancelled expired].freeze
   ACTIVE_STATUSES = %w[held confirmed waitlisted].freeze
+  CAPACITY_CONSUMING_STATUSES = %w[held confirmed].freeze
 
   belongs_to :attendee
   belongs_to :session
 
   validates :status, presence: true, inclusion: { in: STATUSES }
   validate :single_active_registration, if: :active_status?
+
+  scope :active_capacity_consumers, -> { where(status: CAPACITY_CONSUMING_STATUSES) }
+  scope :eligible_waitlist_order, -> { where(status: "waitlisted").order(:created_at, :id) }
+  scope :expired_holds, ->(at_time = Time.current) { where(status: "held").where("hold_expires_at IS NOT NULL AND hold_expires_at <= ?", at_time) }
 
   def active_status?
     ACTIVE_STATUSES.include?(status)

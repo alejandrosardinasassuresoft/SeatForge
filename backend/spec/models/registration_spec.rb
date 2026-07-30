@@ -68,4 +68,38 @@ RSpec.describe Registration, type: :model do
       end.to raise_error(ActiveRecord::RecordNotUnique)
     end
   end
+
+  describe ".active_capacity_consumers" do
+    it "includes held and confirmed registrations" do
+      held = create(:registration, status: "held")
+      confirmed = create(:registration, status: "confirmed")
+      waitlisted = create(:registration, status: "waitlisted")
+      cancelled = create(:registration, status: "cancelled")
+      expired = create(:registration, status: "expired")
+
+      expect(described_class.active_capacity_consumers).to contain_exactly(held, confirmed)
+      expect(described_class.active_capacity_consumers).not_to include(waitlisted, cancelled, expired)
+    end
+  end
+
+  describe ".eligible_waitlist_order" do
+    it "orders waitlisted entries from oldest to newest" do
+      oldest = create(:registration, status: "waitlisted", created_at: 2.hours.ago)
+      latest = create(:registration, status: "waitlisted", created_at: 1.hour.ago)
+      create(:registration, status: "held")
+
+      expect(described_class.eligible_waitlist_order).to eq([oldest, latest])
+    end
+  end
+
+  describe ".expired_holds" do
+    it "returns held registrations whose holds expired" do
+      active = create(:registration, status: "held", hold_expires_at: 10.minutes.from_now)
+      expired = create(:registration, status: "held", hold_expires_at: 10.minutes.ago)
+      create(:registration, status: "confirmed", hold_expires_at: 10.minutes.ago)
+
+      expect(described_class.expired_holds(Time.current)).to contain_exactly(expired)
+      expect(described_class.expired_holds(Time.current)).not_to include(active)
+    end
+  end
 end
