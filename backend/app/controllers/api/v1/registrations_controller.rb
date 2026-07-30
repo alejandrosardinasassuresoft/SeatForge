@@ -10,6 +10,26 @@ module Api
         render json: registration_json(result.registration), status: :created
       end
 
+      def confirm
+        result = Registrations::Transition.call(
+          registration_id: params[:id],
+          action: :confirm,
+          current_time: Time.current
+        )
+
+        render json: registration_json(result.registration)
+      end
+
+      def cancel
+        result = Registrations::Transition.call(
+          registration_id: params[:id],
+          action: :cancel,
+          current_time: Time.current
+        )
+
+        render json: registration_json(result.registration)
+      end
+
       private
 
       def attendee_params
