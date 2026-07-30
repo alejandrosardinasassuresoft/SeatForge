@@ -17,9 +17,11 @@ class ApplicationController < ActionController::API
   end
 
   def render_validation_error(error)
+    message = error.message.sub(/: ([^:]+)\z/, " or invalid: \\1")
+
     render_api_error(
       code: "validation_error",
-      message: error.message,
+      message: message,
       status: 422
     )
   end

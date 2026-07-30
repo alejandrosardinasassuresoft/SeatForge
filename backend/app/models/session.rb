@@ -10,6 +10,18 @@ class Session < ApplicationRecord
   validates :status, presence: true, inclusion: { in: STATUSES }
   validate :ends_after_starts_at
 
+  def capacity_consumers_count
+    registrations.active_capacity_consumers.count
+  end
+
+  def available_seats
+    [capacity - capacity_consumers_count, 0].max
+  end
+
+  def waitlist_count
+    registrations.where(status: "waitlisted").count
+  end
+
   private
 
   def ends_after_starts_at
