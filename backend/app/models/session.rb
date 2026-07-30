@@ -10,6 +10,12 @@ class Session < ApplicationRecord
   validates :status, presence: true, inclusion: { in: STATUSES }
   validate :ends_after_starts_at
 
+  scope :registration_open, ->(at_time = Time.current) { where(status: "scheduled").where("starts_at > ?", at_time) }
+
+  def registration_open?(at_time = Time.current)
+    status == "scheduled" && starts_at.present? && starts_at > at_time
+  end
+
   def capacity_consumers_count
     registrations.active_capacity_consumers.count
   end

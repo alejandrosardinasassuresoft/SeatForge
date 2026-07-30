@@ -6,6 +6,10 @@ Rails.application.routes.draw do
       resources :workshops, only: [:index, :create, :show] do
         resources :sessions, only: [:create]
       end
+
+      resources :sessions, only: [] do
+        resources :registrations, only: [:create]
+      end
     end
   end
 
