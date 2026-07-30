@@ -6,7 +6,7 @@ SeatForge API endpoints under `/api/v1` return JSON errors with a stable envelop
 {
   "error": {
     "code": "validation_error",
-    "message": "param is missing or the value is empty: name",
+    "message": "param is missing or the value is empty or invalid: name",
     "details": []
   }
 }

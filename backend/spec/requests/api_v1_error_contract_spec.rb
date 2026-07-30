@@ -62,7 +62,7 @@ RSpec.describe "API v1 error contract", type: :request do
       expect(response.parsed_body).to eq(
         "error" => {
           "code" => "validation_error",
-          "message" => "param is missing or the value is empty: name",
+          "message" => "param is missing or the value is empty or invalid: name",
           "details" => []
         }
       )
