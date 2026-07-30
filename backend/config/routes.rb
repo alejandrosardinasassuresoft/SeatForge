@@ -7,7 +7,7 @@ Rails.application.routes.draw do
         resources :sessions, only: [:create]
       end
 
-      resources :sessions, only: [] do
+      resources :sessions, only: [:index, :show] do
         resources :registrations, only: [:create]
       end
 
@@ -17,6 +17,14 @@ Rails.application.routes.draw do
           post :cancel
         end
       end
+
+      resources :attendees, only: [] do
+        member do
+          get :registrations
+        end
+      end
+
+      get "dashboard", to: "dashboard#show"
     end
   end
 
