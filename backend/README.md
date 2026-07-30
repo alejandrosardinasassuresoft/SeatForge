@@ -1,24 +1,37 @@
-# README
+# SeatForge Backend
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Rails API backend for SeatForge. Run backend commands from this directory.
 
-Things you may want to cover:
+## Local Setup
 
-* Ruby version
+```powershell
+bundle install
+docker compose up -d db
+bin/rails db:prepare
+bin/rails server
+```
 
-* System dependencies
+Copy `.env.example` to `.env` for local settings. `FRONTEND_ORIGIN` controls which Vue development origin can call `/api/*` through CORS and defaults to `http://localhost:5173`.
 
-* Configuration
+## API Contract
 
-* Database creation
+Frontend-facing API routes belong under `/api/v1`. Shared JSON error responses use this envelope:
 
-* Database initialization
+```json
+{
+  "error": {
+    "code": "validation_error",
+    "message": "Human readable message",
+    "details": []
+  }
+}
+```
 
-* How to run the test suite
+See `docs/api_error_contract.md` for the current error codes and statuses.
 
-* Services (job queues, cache servers, search engines, etc.)
+## Verification
 
-* Deployment instructions
-
-* ...
+```powershell
+bundle exec rspec
+bin/rubocop
+```
