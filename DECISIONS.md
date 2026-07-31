@@ -74,3 +74,57 @@ Keeping the data in one seed file makes local setup reproducible and lowers the 
 
 ### Trade-offs
 The seed set is intentionally compact and focused on the required scenarios rather than exhaustive sample data.
+
+## 5. Session cancellation idempotency result
+
+### Context
+Organizer cancellation (`POST /api/v1/sessions/:id/cancel`) may be retried because of network failures, double-clicks, or stale client state. The operation must not apply its side effects twice.
+
+### Decision
+Cancelling a session is idempotent. Repeating the request on an already-cancelled session returns `200 OK` with the persisted cancellation metadata and a zeroed `cancelled_registrations` count, and enqueues no duplicate notifications. The session is locked for the duration of the cancellation transaction so concurrent cancellations serialize into the same terminal state.
+
+### Alternatives considered
+- Rejecting a repeated cancellation with an error that forces the client to reconcile state.
+- Allowing repeat cancellation to overwrite the original reason or timestamp.
+
+### Why this approach was selected
+Returning the persisted result makes retries safe and matches how clients naturally recover from failed requests. Rejecting duplicates would require clients to handle a non-idempotent terminal operation.
+
+### Trade-offs
+The response cannot distinguish a first-time cancellation from a repeated one by status code alone; clients must inspect `cancelled_count` to tell whether this request performed the cancellation.
+
+## 6. Unchanged-status rule for session cancellation
+
+### Context
+A cancelled session must leave every affected registration in a consistent terminal state, but already-terminal registrations must not be rewritten or re-counted.
+
+### Decision
+`held`, `confirmed`, and `waitlisted` registrations are cancelled together with the session in the same transaction. `expired` and already-`cancelled` registrations are left unchanged, and the response reports cancellation counts only for registrations this request actually cancelled.
+
+### Alternatives considered
+- Cancelling every registration on the session regardless of prior status.
+- Leaving `held`/`confirmed` registrations intact so attendees keep their seats.
+
+### Why this approach was selected
+Rewriting terminal registrations would destroy audit information (original `cancelled_at`/`hold_expires_at`) and inflate the summary counts. Cancelling active registrations is required so capacity and waitlist state cannot outlive a cancelled session.
+
+### Trade-offs
+Because the rule is per-registration-status, the service must enumerate registrations by status within the locked transaction rather than issuing a single bulk update.
+
+## 7. Notification eligibility for session cancellation
+
+### Context
+Attendees whose active booking is cancelled need to know the session is gone, but not every cancelled registration warrants a notification.
+
+### Decision
+The cancellation service enqueues one notification per `held` or `confirmed` registration cancelled by the request. `waitlisted`, `expired`, and already-`cancelled` registrations never trigger a notification, and a repeated (idempotent) cancellation enqueues none.
+
+### Alternatives considered
+- Notifying every registration affected by the cancellation, including waitlisted attendees.
+- Enqueuing a single session-wide notification with no per-registration routing.
+
+### Why this approach was selected
+Only `held` and `confirmed` attendees hold a real seat that the cancellation takes away, so they are the ones with stale booking state. Routing by registration enables the existing per-registration job boundary and keeps payloads precise.
+
+### Trade-offs
+Waitlisted attendees are not proactively notified of the session's cancellation, so the catalogue must instead surface the cancelled status, reason, and cancellation time to all attendees.
