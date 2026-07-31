@@ -21,10 +21,16 @@ client.interceptors.response.use(
   (error) => {
     if (error.response) {
       const { status, data } = error.response
+      const apiError = data?.error
       return Promise.reject({
         status,
-        errors: data?.errors ?? [{ title: 'Server Error', detail: error.message }],
-        data: data?.data ?? null,
+        code: apiError?.code ?? 'request_error',
+        message: apiError?.message ?? error.message,
+        details: apiError?.details ?? [],
+        errors: apiError
+          ? [{ title: apiError.code, detail: apiError.message }]
+          : data?.errors ?? [{ title: 'Server Error', detail: error.message }],
+        data: data ?? null,
         meta: data?.meta ?? {},
       })
     }
