@@ -22,6 +22,7 @@ SeatForge API endpoints under `/api/v1` return JSON errors with a stable envelop
 | `registration_unavailable` | 409 | Session is cancelled, completed, already started, or otherwise closed for registration. |
 | `duplicate_registration` | 409 | Attendee already has an active registration for the requested session. |
 | `registration_schedule_conflict` | 409 | Attendee has a held or confirmed registration for another overlapping session. |
+| `session_cancellation_unavailable` | 409 | Session is completed, already started, or otherwise unavailable for organizer cancellation. |
 | `hold_expired` | 422 | Registration hold expired before confirmation. |
 
 `details` is always an array. Validation errors may include field-level messages when they are available.
@@ -40,3 +41,15 @@ SeatForge API endpoints under `/api/v1` return JSON errors with a stable envelop
 ```
 
 Available capacity returns `201 Created` with status `held` and a UTC `hold_expires_at` ten minutes ahead. Full capacity returns `201 Created` with status `waitlisted` and no hold expiration. Allocation conflicts use the shared error envelope and the `409` codes listed above.
+
+## Session Cancellation
+
+`POST /api/v1/sessions/:id/cancel` accepts a non-empty cancellation reason:
+
+```json
+{
+  "cancellation_reason": "Instructor unavailable"
+}
+```
+
+Successful cancellation returns `200 OK` with session cancellation metadata and `cancelled_registrations` counts for newly cancelled `held`, `confirmed`, and `waitlisted` registrations. Repeating the same cancellation returns the persisted metadata with zero newly cancelled counts.

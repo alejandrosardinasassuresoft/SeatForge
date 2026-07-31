@@ -1,7 +1,7 @@
-﻿# SeatForge â€” Thursday Change Request: Session Cancellation
+﻿# SeatForge — Thursday Change Request: Session Cancellation
 
 > **Source:** `CD2.1-SeatForge_Thursday_Change_Request.pdf` (July 30, 2026).  
-> **Scope:** This addendum preserves the existing consolidated backlog and adds the mandatory change-request work at the end of Phase 2. It uses the same Rails-first contract, UTC timestamps, error envelope, and pull-request workflow. IDs `SEAT-062`–`SEAT-064` avoid reusing the supplemental IDs already reserved in the consolidated backlog.
+> **Scope:** This addendum preserves the existing consolidated backlog and adds the mandatory change-request work at the end of Phase 2. It uses the same Rails-first contract, UTC timestamps, error envelope, and pull-request workflow. IDs `SEAT-025` to `SEAT-033` avoid reusing the supplemental IDs already reserved in the consolidated backlog.
 
 ## Change Summary
 
@@ -9,17 +9,17 @@ Organizers must be able to cancel a scheduled session with a required reason. Th
 
 ## Re-prioritization
 
-The team will not reduce capacity, locking, or lifecycle coverage. To absorb this mandatory change within the fixed deadline, the optional automated frontend cancellation tests are replaced by a documented manual-demo path, while the planned Phase 4 cross-browser regression matrix is reduced to critical supported-browser checks. README/API documentation and `DECISIONS.md` updates move into SEAT-027 rather than waiting for final documentation work.
+The team will not reduce capacity, locking, or lifecycle coverage. To absorb this mandatory change within the fixed deadline, the optional automated frontend cancellation tests are replaced by a documented manual-demo path, while the planned Phase 4 cross-browser regression matrix is reduced to critical supported-browser checks. README/API documentation and `DECISIONS.md` updates move into SEAT-033 rather than waiting for final documentation work.
 
-## Phase 2 â€” Critical Registration Lifecycle (Change Request Additions)
+## Phase 2 — Critical Registration Lifecycle (Change Request Additions)
 
-### SEAT-025 â€” Cancel a Session Transactionally
+### SEAT-025 — Cancel a Session Transactionally
 
 | Field | Value |
 |---|---|
-| Phase | 2 â€” Lifecycle |
+| Phase | 2 — Lifecycle |
 | Type | Backend |
-| Assignee | Josoe |
+| Assignee | Alejandro |
 | Priority | Mandatory |
 | Story Points | 4 |
 | Dependencies | SEAT-010, SEAT-012, SEAT-021, SEAT-022 |
@@ -47,16 +47,16 @@ Run request and service specs for a successful cancellation, missing reason, mix
 
 ---
 
-### SEAT-026 â€” Notify Affected Attendees and Protect Lifecycle Regressions
+### SEAT-026 — Notify Affected Attendees and Protect Lifecycle Regressions
 
 | Field | Value |
 |---|---|
-| Phase | 2 â€” Lifecycle |
+| Phase | 2 — Lifecycle |
 | Type | Backend / Jobs / Testing |
 | Assignee | Carlos |
 | Priority | Mandatory |
 | Story Points | 4 |
-| Dependencies | SEAT-023, SEAT-062 |
+| Dependencies | SEAT-023, SEAT-025 |
 
 #### Description
 
@@ -64,7 +64,7 @@ As an affected attendee, I need a cancellation notification when my held or conf
 
 #### Acceptance Criteria
 
-- [ ] The existing replaceable notification boundary enqueues one job for each held or confirmed registration cancelled by SEAT-062.
+- [ ] The existing replaceable notification boundary enqueues one job for each held or confirmed registration cancelled by SEAT-025.
 - [ ] Waitlisted, expired, and already-cancelled registrations do not produce cancellation notifications.
 - [ ] Repeat cancellation enqueues no duplicate notifications.
 - [ ] Job/service/request specs prove notification eligibility, transaction-safe registration updates, and no regression to hold expiry, confirmation, cancellation, or waitlist-promotion behavior.
@@ -80,16 +80,19 @@ Cancel a seeded session containing all registration states, inspect enqueued job
 
 ---
 
-### SEAT-027 â€” Present Cancelled Sessions and Document the Contract
+
+## Phase 3 — Vue Integration (Change Request Addition)
+
+### SEAT-033 — Present Cancelled Sessions and Document the Contract
 
 | Field | Value |
 |---|---|
-| Phase | 2 â€” Lifecycle / Vue Integration |
+| Phase | 3 — Vue Integration |
 | Type | Frontend / Documentation |
-| Assignee | Alejandro |
+| Assignee | Josoe |
 | Priority | Mandatory |
 | Story Points | 4 |
-| Dependencies | SEAT-003, SEAT-062, SEAT-063 |
+| Dependencies | SEAT-003, SEAT-025, SEAT-026, SEAT-030, SEAT-031 |
 
 #### Description
 
@@ -115,64 +118,76 @@ Cancel a session through the API, refresh the Vue views, confirm the reason is v
 
 ## Summary: Ticket Distribution by Assignee
 
-The current consolidated backlog assigns Carlos 43 points, Alejandro 44, and Josoe 41. One four-point change ticket per engineer keeps its documented maximum three-point spread (47/48/45) while ensuring the new mandatory scope is distributed exactly equally.
+The original plan assigns 26 points to each engineer. The change request adds one four-point ticket per engineer, preserving exact equity: 30 points and seven tickets each.
 
-### Carlos (Backend foundation, availability, jobs, and architecture)
-
-| ID | Title | Phase | Points |
-|---|---|---:|---:|
-| Existing backlog | SEAT-001, SEAT-010, SEAT-023, SEAT-030, SEAT-050, SEAT-053 | 0â€“4 | 26 |
-| SEAT-063 | Notify Affected Attendees and Protect Lifecycle Regressions | 2 | 4 |
-| **Total** | **13 tickets** | | **47** |
-
-### Alejandro (API contracts, registration allocation, and frontend verification)
+### Carlos (Rails foundation, session lifecycle jobs, catalogue)
 
 | ID | Title | Phase | Points |
 |---|---|---:|---:|
-| Existing backlog | SEAT-002, SEAT-011, SEAT-021, SEAT-031, SEAT-051, SEAT-054 | 0â€“4 | 26 |
-| SEAT-064 | Present Cancelled Sessions and Document the Contract | 2 | 4 |
-| **Total** | **12 tickets** | | **48** |
+| Existing backlog | SEAT-001, SEAT-010, SEAT-023, SEAT-030, SEAT-050, SEAT-053 | 0–4 | 26 |
+| SEAT-026 | Notify Affected Attendees and Protect Lifecycle Regressions | 2 | 4 |
+| **Total** | **7 tickets** | | **30** |
 
-### Josoe (domain state, lifecycle transitions, and read models)
+### Alejandro (API contracts, attendee data, registration UI)
 
 | ID | Title | Phase | Points |
 |---|---|---:|---:|
-| Existing backlog | SEAT-003, SEAT-012, SEAT-022, SEAT-024, SEAT-032, SEAT-052 | 0â€“4 | 26 |
-| SEAT-062 | Cancel a Session Transactionally | 2 | 4 |
-| **Total** | **12 tickets** | | **45** |
+| Existing backlog | SEAT-002, SEAT-011, SEAT-021, SEAT-031, SEAT-051, SEAT-054 | 0–4 | 26 |
+| SEAT-025 | Cancel a Session Transactionally | 2 | 4 |
+| **Total** | **7 tickets** | | **30** |
 
+### Josoe (Vue foundation, domain queries, confirmation/cancellation lifecycle)
+
+| ID | Title | Phase | Points |
+|---|---|---:|---:|
+| Existing backlog | SEAT-003, SEAT-012, SEAT-022, SEAT-024, SEAT-032, SEAT-052 | 0–4 | 26 |
+| SEAT-033 | Present Cancelled Sessions and Document the Contract | 3 | 4 |
+| **Total** | **7 tickets** | | **30** |
 ## Complete Ticket Inventory
 
 | Phase | Tickets | Points |
 |---|---:|---:|
-| Phase 0: Foundation | SEAT-001 â†’ SEAT-003 (3 tickets) | 9 |
-| Phase 1: Rails Domain | SEAT-010 â†’ SEAT-012 (3 tickets) | 14 |
-| Phase 2: Lifecycle / Queries | SEAT-021 â†’ SEAT-027 (7 tickets) | 39 |
-| Phase 3: Vue Integration | SEAT-030 â†’ SEAT-032 (3 tickets) | 14 |
-| Phase 4: Delivery | SEAT-050 â†’ SEAT-054 (5 tickets) | 14 |
-| **Total** | **37 tickets** | **140** |
+| Phase 0: Foundation | SEAT-001 → SEAT-003 (3 tickets) | 9 |
+| Phase 1: Rails Domain | SEAT-010 → SEAT-012 (3 tickets) | 14 |
+| Phase 2: Lifecycle / Queries | SEAT-021 → SEAT-026 (6 tickets) | 35 |
+| Phase 3: Vue Integration | SEAT-030 → SEAT-033 (4 tickets) | 18 |
+| Phase 4: Delivery | SEAT-050 → SEAT-054 (5 tickets) | 14 |
+| **Total** | **21 tickets** | **90** |
+## Dependency Index
 
+| Ticket | Depends on | Ticket | Depends on |
+|---|---|---|---|
+| SEAT-001 | None | SEAT-002 | SEAT-001 |
+| SEAT-003 | None | SEAT-010 | SEAT-001, SEAT-002 |
+| SEAT-011 | SEAT-010 | SEAT-012 | SEAT-010, SEAT-011 |
+| SEAT-021 | SEAT-011, SEAT-012 | SEAT-022 | SEAT-012, SEAT-021 |
+| SEAT-023 | SEAT-012, SEAT-022 | SEAT-024 | SEAT-010, SEAT-012 |
+| SEAT-025 | SEAT-010, SEAT-012, SEAT-021, SEAT-022 | SEAT-026 | SEAT-023, SEAT-025 |
+| SEAT-030 | SEAT-003, SEAT-010, SEAT-024 | SEAT-031 | SEAT-003, SEAT-021, SEAT-022, SEAT-030 |
+| SEAT-032 | SEAT-003, SEAT-022, SEAT-023, SEAT-024 | SEAT-033 | SEAT-003, SEAT-025, SEAT-026, SEAT-030, SEAT-031 |
+| SEAT-050 | SEAT-001 through SEAT-033 | SEAT-051 | SEAT-021, SEAT-022, SEAT-023, SEAT-025, SEAT-026 |
+| SEAT-052 | SEAT-050, SEAT-051 | SEAT-053 | SEAT-050, SEAT-051, SEAT-052 |
+| SEAT-054 | SEAT-030, SEAT-031, SEAT-032, SEAT-033, SEAT-052 | — | — |
 ## Dependency Graph (Updated Critical Path)
 
 ```text
-SEAT-001 â†’ SEAT-002 â†’ SEAT-010 â†’ SEAT-011 â†’ SEAT-012
-                                             â”œâ†’ SEAT-021 â†’ SEAT-022 â†’ SEAT-023
-                                             â”œâ†’ SEAT-024
-                                             â””â†’ SEAT-025 â†’ SEAT-026 â†’ SEAT-027
+SEAT-001 → SEAT-002 → SEAT-010 → SEAT-011 → SEAT-012
+                                             ├→ SEAT-021 → SEAT-022 → SEAT-023
+                                             ├→ SEAT-024 → SEAT-030 → SEAT-031
+                                             └→ SEAT-025 → SEAT-026 → SEAT-033
 
-SEAT-003 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â†’ SEAT-027
+SEAT-003 ───────────────────────────────────────→ SEAT-030 / SEAT-031 / SEAT-033
 
-SEAT-023 + SEAT-025 + SEAT-026 + SEAT-027 â†’ SEAT-050 / SEAT-051 â†’ SEAT-052 â†’ SEAT-053
+SEAT-023 + SEAT-025 + SEAT-026 + SEAT-033 → SEAT-050 / SEAT-051 → SEAT-052 → SEAT-053
 ```
 
-**Change-request critical path:** SEAT-010 â†’ SEAT-011 â†’ SEAT-012 â†’ SEAT-021 â†’ SEAT-022 â†’ SEAT-025 â†’ SEAT-026 â†’ SEAT-027 â†’ SEAT-052 â†’ SEAT-053.
-
+**Change-request critical path:** SEAT-010 → SEAT-011 → SEAT-012 → SEAT-021 → SEAT-022 → SEAT-025 → SEAT-026 → SEAT-033 → SEAT-052 → SEAT-053.
 ## Delivery Sequence
 
 | Order | Work | Owner | Handoff |
 |---:|---|---|---|
 | 1 | Agree cancellation response/error codes and notification payload | All | Recorded interface before coding |
-| 2 | Deliver migration, cancellation service, route, and request specs | Josoe | SEAT-062 PR merged/reviewed |
-| 3 | Add notification eligibility, idempotency, and lifecycle regressions | Carlos | SEAT-063 PR merged/reviewed |
-| 4 | Update Vue cancelled state, README/API examples, decisions, and demo script | Alejandro | SEAT-064 PR merged/reviewed |
+| 2 | Deliver migration, cancellation service, route, and request specs | Alejandro | SEAT-025 PR merged/reviewed |
+| 3 | Add notification eligibility, idempotency, and lifecycle regressions | Carlos | SEAT-026 PR merged/reviewed |
+| 4 | Update Vue cancelled state, README/API examples, decisions, and demo script | Josoe | SEAT-033 PR merged/reviewed |
 | 5 | Run full suite and final cancellation demo | All | Evidence attached to SEAT-052/SEAT-053 |

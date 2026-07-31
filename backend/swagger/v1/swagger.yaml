@@ -334,7 +334,7 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/session_cancellation_response"
+                "$ref": "#/components/schemas/session_cancellation"
         '422':
           description: missing cancellation reason
           content:
@@ -343,6 +343,12 @@ paths:
                 "$ref": "#/components/schemas/error"
         '404':
           description: session not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+        '409':
+          description: session cannot be cancelled
           content:
             application/json:
               schema:
@@ -559,12 +565,12 @@ components:
           - scheduled
           - cancelled
           - completed
+        cancellation_reason:
+          type: string
+          nullable: true
         cancelled_at:
           type: string
           format: date-time
-          nullable: true
-        cancellation_reason:
-          type: string
           nullable: true
         workshop:
           type: object
@@ -596,6 +602,13 @@ components:
           - scheduled
           - cancelled
           - completed
+        cancellation_reason:
+          type: string
+          nullable: true
+        cancelled_at:
+          type: string
+          format: date-time
+          nullable: true
         created_at:
           type: string
           format: date-time
@@ -621,6 +634,13 @@ components:
           - scheduled
           - cancelled
           - completed
+        cancellation_reason:
+          type: string
+          nullable: true
+        cancelled_at:
+          type: string
+          format: date-time
+          nullable: true
         workshop:
           type: object
           properties:
@@ -645,19 +665,46 @@ components:
               type: integer
             available_seats:
               type: integer
-        cancelled_at:
-          type: string
-          format: date-time
-          nullable: true
-        cancellation_reason:
-          type: string
-          nullable: true
         created_at:
           type: string
           format: date-time
-    session_cancellation_response:
+    session_cancellation:
       type: object
       properties:
+        session:
+          type: object
+          properties:
+            id:
+              type: integer
+            status:
+              type: string
+              enum:
+              - cancelled
+            cancellation_reason:
+              type: string
+            cancelled_at:
+              type: string
+              format: date-time
+          required:
+          - id
+          - status
+          - cancellation_reason
+          - cancelled_at
+        cancelled_registrations:
+          type: object
+          properties:
+            held:
+              type: integer
+            confirmed:
+              type: integer
+            waitlisted:
+              type: integer
+          required:
+          - held
+          - confirmed
+          - waitlisted
+        cancelled_count:
+          type: integer
         id:
           type: integer
         status:
@@ -680,14 +727,10 @@ components:
               type: integer
             waitlisted:
               type: integer
-          required:
-          - held
-          - confirmed
-          - waitlisted
       required:
-      - id
-      - status
-      - cancelled_counts
+      - session
+      - cancelled_registrations
+      - cancelled_count
     session_list:
       type: object
       properties:

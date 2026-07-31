@@ -47,25 +47,22 @@ module Api
       end
 
       def cancel
-        reason = params[:cancellation_reason] || params.dig(:session, :cancellation_reason)
         result = Sessions::Cancel.call(
           session_id: params[:id],
-          cancellation_reason: reason
+          cancellation_reason: cancellation_reason_param
         )
 
-        render json: {
-          id: result.session.id,
-          status: result.session.status,
-          cancelled_at: result.session.cancelled_at,
-          cancellation_reason: result.session.cancellation_reason,
-          cancelled_counts: result.cancelled_counts
-        }, status: :ok
+        render json: session_cancellation_json(result), status: :ok
       end
 
       private
 
       def session_params
         params.require(:session).permit(:starts_at, :ends_at, :capacity, :status)
+      end
+
+      def cancellation_reason_param
+        params[:cancellation_reason] || params.dig(:session, :cancellation_reason)
       end
 
       def session_list_json(session)
@@ -82,6 +79,26 @@ module Api
             title: session.workshop.title,
             topic: session.workshop.topic
           }
+        }
+      end
+
+      def session_cancellation_json(result)
+        counts = result.cancelled_counts
+
+        {
+          session: {
+            id: result.session.id,
+            status: result.session.status,
+            cancellation_reason: result.session.cancellation_reason,
+            cancelled_at: result.session.cancelled_at
+          },
+          cancelled_registrations: counts,
+          cancelled_count: counts.values.sum,
+          id: result.session.id,
+          status: result.session.status,
+          cancellation_reason: result.session.cancellation_reason,
+          cancelled_at: result.session.cancelled_at,
+          cancelled_counts: counts
         }
       end
     end

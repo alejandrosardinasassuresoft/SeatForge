@@ -1,541 +1,881 @@
 {
-    "info":  {
-                 "name":  "SeatForge API",
-                 "description":  "Postman collection for the SeatForge Rails API.\n\nBase URL: http://localhost:3000",
-                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-                 "_exporter_id":  "seatforge"
-             },
-    "item":  [
-                 {
-                     "name":  "Health",
-                     "item":  [
-                                  {
-                                      "name":  "Health Check (API)",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{base_url}}/api/v1/health",
-                                                                  "host":  [
-                                                                               "{{base_url}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "v1",
-                                                                               "health"
-                                                                           ]
-                                                              },
-                                                      "description":  "Returns the API health status. Expected response: { \"status\": \"ok\" }."
-                                                  }
-                                  },
-                                  {
-                                      "name":  "Health Check (Rails /up)",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{base_url}}/up",
-                                                                  "host":  [
-                                                                               "{{base_url}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "up"
-                                                                           ]
-                                                              },
-                                                      "description":  "Rails built-in health endpoint. Returns 200 if the app boots successfully, 500 otherwise."
-                                                  }
-                                  }
-                              ]
-                 },
-                 {
-                     "name":  "Workshops",
-                     "item":  [
-                                  {
-                                      "name":  "Create Workshop",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n  \"workshop\": {\n    \"title\": \"Advanced Rails API\",\n    \"description\": \"Build reliable JSON APIs with Rails.\",\n    \"topic\": \"Backend\",\n    \"active\": true\n  }\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{base_url}}/api/v1/workshops",
-                                                                  "host":  [
-                                                                               "{{base_url}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "v1",
-                                                                               "workshops"
-                                                                           ]
-                                                              },
-                                                      "description":  "Creates a workshop. Save the response id as {{workshop_id}} for show/session requests."
-                                                  }
-                                  },
-                                  {
-                                      "name":  "List Workshops",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{base_url}}/api/v1/workshops?topic={{topic}}\u0026sort={{sort}}\u0026order={{order}}\u0026page={{page}}\u0026per_page={{per_page}}",
-                                                                  "host":  [
-                                                                               "{{base_url}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "v1",
-                                                                               "workshops"
-                                                                           ],
-                                                                  "query":  [
-                                                                                {
-                                                                                    "key":  "topic",
-                                                                                    "value":  "{{topic}}",
-                                                                                    "description":  "Optional case-insensitive topic filter."
-                                                                                },
-                                                                                {
-                                                                                    "key":  "sort",
-                                                                                    "value":  "{{sort}}",
-                                                                                    "description":  "Allowed: title, created_at, topic. Defaults to created_at."
-                                                                                },
-                                                                                {
-                                                                                    "key":  "order",
-                                                                                    "value":  "{{order}}",
-                                                                                    "description":  "Allowed: asc, desc. Defaults to desc."
-                                                                                },
-                                                                                {
-                                                                                    "key":  "page",
-                                                                                    "value":  "{{page}}"
-                                                                                },
-                                                                                {
-                                                                                    "key":  "per_page",
-                                                                                    "value":  "{{per_page}}"
-                                                                                }
-                                                                            ]
-                                                              },
-                                                      "description":  "Lists active workshops with optional filtering, sorting, and pagination metadata."
-                                                  }
-                                  },
-                                  {
-                                      "name":  "Show Workshop",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{base_url}}/api/v1/workshops/{{workshop_id}}",
-                                                                  "host":  [
-                                                                               "{{base_url}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "v1",
-                                                                               "workshops",
-                                                                               "{{workshop_id}}"
-                                                                           ]
-                                                              },
-                                                      "description":  "Fetches one workshop by id. Missing ids return the shared not_found error envelope."
-                                                  }
-                                  },
-                                  {
-                                      "name":  "Create Workshop Validation Error",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n  \"workshop\": {\n    \"title\": \"\",\n    \"topic\": \"\"\n  }\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{base_url}}/api/v1/workshops",
-                                                                  "host":  [
-                                                                               "{{base_url}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "v1",
-                                                                               "workshops"
-                                                                           ]
-                                                              },
-                                                      "description":  "Exercises the shared validation_error envelope."
-                                                  }
-                                  }
-                              ]
-                 },
-                 {
-                     "name":  "Sessions",
-                     "item":  [
-                                  {
-                                      "name":  "Create Session for Workshop",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n  \"session\": {\n    \"starts_at\": \"{{session_starts_at}}\",\n    \"ends_at\": \"{{session_ends_at}}\",\n    \"capacity\": 20,\n    \"status\": \"scheduled\"\n  }\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{base_url}}/api/v1/workshops/{{workshop_id}}/sessions",
-                                                                  "host":  [
-                                                                               "{{base_url}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "v1",
-                                                                               "workshops",
-                                                                               "{{workshop_id}}",
-                                                                               "sessions"
-                                                                           ]
-                                                              },
-                                                      "description":  "Creates a session under an existing workshop. This is structural session persistence only; availability and lifecycle behavior are separate tickets."
-                                                  }
-                                  },
-                                  {
-                                      "name":  "Create Session Missing Workshop",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n  \"session\": {\n    \"starts_at\": \"{{session_starts_at}}\",\n    \"ends_at\": \"{{session_ends_at}}\",\n    \"capacity\": 10,\n    \"status\": \"scheduled\"\n  }\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{base_url}}/api/v1/workshops/999999/sessions",
-                                                                  "host":  [
-                                                                               "{{base_url}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "v1",
-                                                                               "workshops",
-                                                                               "999999",
-                                                                               "sessions"
-                                                                           ]
-                                                              },
-                                                      "description":  "Exercises the shared not_found error envelope when the parent workshop does not exist."
-                                                  }
-                                  }
-                              ]
-                 },
-                 {
-                     "name":  "Registrations",
-                     "item":  [
-                                  {
-                                      "name":  "Create Held Registration",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n  \"attendee\": {\n    \"name\": \"{{attendee_name}}\",\n    \"email\": \"{{attendee_email}}\"\n  }\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{base_url}}/api/v1/sessions/{{session_id}}/registrations",
-                                                                  "host":  [
-                                                                               "{{base_url}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "v1",
-                                                                               "sessions",
-                                                                               "{{session_id}}",
-                                                                               "registrations"
-                                                                           ]
-                                                              },
-                                                      "description":  "Creates or reuses the attendee identity, then returns 201 with a held registration when the session has capacity. Expected status: held with hold_expires_at about ten minutes ahead in UTC."
-                                                  }
-                                  },
-                                  {
-                                      "name":  "Create Waitlisted Registration",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n  \"attendee\": {\n    \"name\": \"Waitlisted Attendee\",\n    \"email\": \"waitlisted.attendee@example.com\"\n  }\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{base_url}}/api/v1/sessions/{{full_session_id}}/registrations",
-                                                                  "host":  [
-                                                                               "{{base_url}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "v1",
-                                                                               "sessions",
-                                                                               "{{full_session_id}}",
-                                                                               "registrations"
-                                                                           ]
-                                                              },
-                                                      "description":  "Use a session whose held/confirmed registrations already consume capacity. Expected response: 201 with status waitlisted and hold_expires_at null."
-                                                  }
-                                  },
-                                  {
-                                      "name":  "Create Registration Validation Error",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n  \"attendee\": {\n    \"name\": \"\",\n    \"email\": \"\"\n  }\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{base_url}}/api/v1/sessions/{{session_id}}/registrations",
-                                                                  "host":  [
-                                                                               "{{base_url}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "v1",
-                                                                               "sessions",
-                                                                               "{{session_id}}",
-                                                                               "registrations"
-                                                                           ]
-                                                              },
-                                                      "description":  "Exercises the shared validation_error envelope for missing attendee identity fields. Expected HTTP status: 422."
-                                                  }
-                                  },
-                                  {
-                                      "name":  "Create Registration Missing Session",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n  \"attendee\": {\n    \"name\": \"{{attendee_name}}\",\n    \"email\": \"missing.session@example.com\"\n  }\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{base_url}}/api/v1/sessions/999999/registrations",
-                                                                  "host":  [
-                                                                               "{{base_url}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "v1",
-                                                                               "sessions",
-                                                                               "999999",
-                                                                               "registrations"
-                                                                           ]
-                                                              },
-                                                      "description":  "Exercises the shared not_found envelope when the target session does not exist. Expected HTTP status: 404."
-                                                  }
-                                  },
-                                  {
-                                      "name":  "Create Registration Unavailable Conflict",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n  \"attendee\": {\n    \"name\": \"Unavailable Session Attendee\",\n    \"email\": \"unavailable.session@example.com\"\n  }\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{base_url}}/api/v1/sessions/{{unavailable_session_id}}/registrations",
-                                                                  "host":  [
-                                                                               "{{base_url}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "v1",
-                                                                               "sessions",
-                                                                               "{{unavailable_session_id}}",
-                                                                               "registrations"
-                                                                           ]
-                                                              },
-                                                      "description":  "Use a cancelled, completed, or already-started session. Expected HTTP status: 409 with code registration_unavailable."
-                                                  }
-                                  },
-                                  {
-                                      "name":  "Create Registration Duplicate Conflict",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n  \"attendee\": {\n    \"name\": \"{{attendee_name}}\",\n    \"email\": \"{{attendee_email}}\"\n  }\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{base_url}}/api/v1/sessions/{{session_id}}/registrations",
-                                                                  "host":  [
-                                                                               "{{base_url}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "v1",
-                                                                               "sessions",
-                                                                               "{{session_id}}",
-                                                                               "registrations"
-                                                                           ]
-                                                              },
-                                                      "description":  "Run Create Held Registration first with the same attendee and session. Expected HTTP status: 409 with code duplicate_registration."
-                                                  }
-                                  },
-                                  {
-                                      "name":  "Create Registration Schedule Conflict",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n  \"attendee\": {\n    \"name\": \"{{attendee_name}}\",\n    \"email\": \"{{attendee_email}}\"\n  }\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{base_url}}/api/v1/sessions/{{overlapping_session_id}}/registrations",
-                                                                  "host":  [
-                                                                               "{{base_url}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "v1",
-                                                                               "sessions",
-                                                                               "{{overlapping_session_id}}",
-                                                                               "registrations"
-                                                                           ]
-                                                              },
-                                                      "description":  "Use the same attendee after they have a held or confirmed registration in an overlapping session window. Expected HTTP status: 409 with code registration_schedule_conflict."
-                                                  }
-                                  }
-                              ]
-                 }
-             ],
-    "variable":  [
-                     {
-                         "key":  "base_url",
-                         "value":  "http://localhost:3000",
-                         "type":  "string"
-                     },
-                     {
-                         "key":  "workshop_id",
-                         "value":  "1",
-                         "type":  "string"
-                     },
-                     {
-                         "key":  "session_id",
-                         "value":  "1",
-                         "type":  "string"
-                     },
-                     {
-                         "key":  "full_session_id",
-                         "value":  "2",
-                         "type":  "string"
-                     },
-                     {
-                         "key":  "unavailable_session_id",
-                         "value":  "3",
-                         "type":  "string"
-                     },
-                     {
-                         "key":  "overlapping_session_id",
-                         "value":  "4",
-                         "type":  "string"
-                     },
-                     {
-                         "key":  "attendee_name",
-                         "value":  "Alejandro Sardinas",
-                         "type":  "string"
-                     },
-                     {
-                         "key":  "attendee_email",
-                         "value":  "alejandro@example.com",
-                         "type":  "string"
-                     },
-                     {
-                         "key":  "topic",
-                         "value":  "Backend",
-                         "type":  "string"
-                     },
-                     {
-                         "key":  "sort",
-                         "value":  "created_at",
-                         "type":  "string"
-                     },
-                     {
-                         "key":  "order",
-                         "value":  "desc",
-                         "type":  "string"
-                     },
-                     {
-                         "key":  "page",
-                         "value":  "1",
-                         "type":  "string"
-                     },
-                     {
-                         "key":  "per_page",
-                         "value":  "10",
-                         "type":  "string"
-                     },
-                     {
-                         "key":  "session_starts_at",
-                         "value":  "2026-08-01T14:00:00Z",
-                         "type":  "string"
-                     },
-                     {
-                         "key":  "session_ends_at",
-                         "value":  "2026-08-01T16:00:00Z",
-                         "type":  "string"
-                     }
-                 ]
+  "info": {
+    "name": "SeatForge API",
+    "description": "Postman collection for the SeatForge Rails API.\n\nBase URL: http://localhost:3000",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "seatforge"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check (API)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "health"
+              ]
+            },
+            "description": "Returns the API health status. Expected response: { \"status\": \"ok\" }."
+          }
+        },
+        {
+          "name": "Health Check (Rails /up)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/up",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "up"
+              ]
+            },
+            "description": "Rails built-in health endpoint. Returns 200 if the app boots successfully, 500 otherwise."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Workshops",
+      "item": [
+        {
+          "name": "Create Workshop",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workshop\": {\n    \"title\": \"Advanced Rails API\",\n    \"description\": \"Build reliable JSON APIs with Rails.\",\n    \"topic\": \"Backend\",\n    \"active\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/workshops",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "workshops"
+              ]
+            },
+            "description": "Creates a workshop. Save the response id as {{workshop_id}} for show/session requests."
+          }
+        },
+        {
+          "name": "List Workshops",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/workshops?topic={{topic}}&sort={{sort}}&order={{order}}&page={{page}}&per_page={{per_page}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "workshops"
+              ],
+              "query": [
+                {
+                  "key": "topic",
+                  "value": "{{topic}}",
+                  "description": "Optional case-insensitive topic filter."
+                },
+                {
+                  "key": "sort",
+                  "value": "{{sort}}",
+                  "description": "Allowed: title, created_at, topic. Defaults to created_at."
+                },
+                {
+                  "key": "order",
+                  "value": "{{order}}",
+                  "description": "Allowed: asc, desc. Defaults to desc."
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "per_page",
+                  "value": "{{per_page}}"
+                }
+              ]
+            },
+            "description": "Lists active workshops with optional filtering, sorting, and pagination metadata."
+          }
+        },
+        {
+          "name": "Show Workshop",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/workshops/{{workshop_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "workshops",
+                "{{workshop_id}}"
+              ]
+            },
+            "description": "Fetches one workshop by id. Missing ids return the shared not_found error envelope."
+          }
+        },
+        {
+          "name": "Create Workshop Validation Error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workshop\": {\n    \"title\": \"\",\n    \"topic\": \"\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/workshops",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "workshops"
+              ]
+            },
+            "description": "Exercises the shared validation_error envelope."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sessions",
+      "item": [
+        {
+          "name": "Create Session for Workshop",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session\": {\n    \"starts_at\": \"{{session_starts_at}}\",\n    \"ends_at\": \"{{session_ends_at}}\",\n    \"capacity\": 20,\n    \"status\": \"scheduled\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/workshops/{{workshop_id}}/sessions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "workshops",
+                "{{workshop_id}}",
+                "sessions"
+              ]
+            },
+            "description": "Creates a session under an existing workshop. This is structural session persistence only; availability and lifecycle behavior are separate tickets."
+          }
+        },
+        {
+          "name": "Create Session Missing Workshop",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session\": {\n    \"starts_at\": \"{{session_starts_at}}\",\n    \"ends_at\": \"{{session_ends_at}}\",\n    \"capacity\": 10,\n    \"status\": \"scheduled\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/workshops/999999/sessions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "workshops",
+                "999999",
+                "sessions"
+              ]
+            },
+            "description": "Exercises the shared not_found error envelope when the parent workshop does not exist."
+          }
+        },
+        {
+          "name": "List Sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/sessions?topic={{topic}}&available={{available}}&sort={{session_sort}}&order={{order}}&page={{page}}&per_page={{per_page}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sessions"
+              ],
+              "query": [
+                {
+                  "key": "topic",
+                  "description": "Optional topic filter.",
+                  "value": "{{topic}}"
+                },
+                {
+                  "key": "available",
+                  "description": "Use true to return sessions with capacity available.",
+                  "value": "{{available}}"
+                },
+                {
+                  "key": "sort",
+                  "description": "Allowed examples: starts_at, capacity.",
+                  "value": "{{session_sort}}"
+                },
+                {
+                  "key": "order",
+                  "description": "Allowed: asc, desc.",
+                  "value": "{{order}}"
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "per_page",
+                  "value": "{{per_page}}"
+                }
+              ]
+            },
+            "description": "Lists upcoming registration-open sessions with workshop summary and pagination metadata. Optional filters: topic and available."
+          }
+        },
+        {
+          "name": "Show Session",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/sessions/{{session_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sessions",
+                "{{session_id}}"
+              ]
+            },
+            "description": "Fetches one session with workshop details and availability counts."
+          }
+        },
+        {
+          "name": "Cancel Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cancellation_reason\": \"{{cancellation_reason}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sessions/{{session_id}}/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sessions",
+                "{{session_id}}",
+                "cancel"
+              ]
+            },
+            "description": "Cancels a scheduled session and returns cancellation metadata plus counts for newly cancelled held, confirmed, and waitlisted registrations."
+          }
+        },
+        {
+          "name": "Cancel Session Missing Reason",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sessions/{{session_id}}/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sessions",
+                "{{session_id}}",
+                "cancel"
+              ]
+            },
+            "description": "Exercises the shared validation_error envelope for missing cancellation_reason. Expected HTTP status: 422."
+          }
+        },
+        {
+          "name": "Cancel Session Not Found",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cancellation_reason\": \"{{cancellation_reason}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sessions/999999/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sessions",
+                "999999",
+                "cancel"
+              ]
+            },
+            "description": "Exercises the shared not_found envelope when the target session does not exist. Expected HTTP status: 404."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Registrations",
+      "item": [
+        {
+          "name": "Create Held Registration",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attendee\": {\n    \"name\": \"{{attendee_name}}\",\n    \"email\": \"{{attendee_email}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sessions/{{session_id}}/registrations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sessions",
+                "{{session_id}}",
+                "registrations"
+              ]
+            },
+            "description": "Creates or reuses the attendee identity, then returns 201 with a held registration when the session has capacity. Expected status: held with hold_expires_at about ten minutes ahead in UTC."
+          }
+        },
+        {
+          "name": "Create Waitlisted Registration",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attendee\": {\n    \"name\": \"Waitlisted Attendee\",\n    \"email\": \"waitlisted.attendee@example.com\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sessions/{{full_session_id}}/registrations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sessions",
+                "{{full_session_id}}",
+                "registrations"
+              ]
+            },
+            "description": "Use a session whose held/confirmed registrations already consume capacity. Expected response: 201 with status waitlisted and hold_expires_at null."
+          }
+        },
+        {
+          "name": "Create Registration Validation Error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attendee\": {\n    \"name\": \"\",\n    \"email\": \"\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sessions/{{session_id}}/registrations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sessions",
+                "{{session_id}}",
+                "registrations"
+              ]
+            },
+            "description": "Exercises the shared validation_error envelope for missing attendee identity fields. Expected HTTP status: 422."
+          }
+        },
+        {
+          "name": "Create Registration Missing Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attendee\": {\n    \"name\": \"{{attendee_name}}\",\n    \"email\": \"missing.session@example.com\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sessions/999999/registrations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sessions",
+                "999999",
+                "registrations"
+              ]
+            },
+            "description": "Exercises the shared not_found envelope when the target session does not exist. Expected HTTP status: 404."
+          }
+        },
+        {
+          "name": "Create Registration Unavailable Conflict",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attendee\": {\n    \"name\": \"Unavailable Session Attendee\",\n    \"email\": \"unavailable.session@example.com\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sessions/{{unavailable_session_id}}/registrations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sessions",
+                "{{unavailable_session_id}}",
+                "registrations"
+              ]
+            },
+            "description": "Use a cancelled, completed, or already-started session. Expected HTTP status: 409 with code registration_unavailable."
+          }
+        },
+        {
+          "name": "Create Registration Duplicate Conflict",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attendee\": {\n    \"name\": \"{{attendee_name}}\",\n    \"email\": \"{{attendee_email}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sessions/{{session_id}}/registrations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sessions",
+                "{{session_id}}",
+                "registrations"
+              ]
+            },
+            "description": "Run Create Held Registration first with the same attendee and session. Expected HTTP status: 409 with code duplicate_registration."
+          }
+        },
+        {
+          "name": "Create Registration Schedule Conflict",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attendee\": {\n    \"name\": \"{{attendee_name}}\",\n    \"email\": \"{{attendee_email}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sessions/{{overlapping_session_id}}/registrations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sessions",
+                "{{overlapping_session_id}}",
+                "registrations"
+              ]
+            },
+            "description": "Use the same attendee after they have a held or confirmed registration in an overlapping session window. Expected HTTP status: 409 with code registration_schedule_conflict."
+          }
+        },
+        {
+          "name": "Create Registration After Session Cancellation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attendee\": {\n    \"name\": \"Cancelled Session Attendee\",\n    \"email\": \"cancelled.session.attendee@example.com\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sessions/{{session_id}}/registrations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sessions",
+                "{{session_id}}",
+                "registrations"
+              ]
+            },
+            "description": "Run Cancel Session first, then this request. Expected HTTP status: 409 with code registration_unavailable."
+          }
+        },
+        {
+          "name": "Confirm Registration",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/registrations/{{registration_id}}/confirm",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "registrations",
+                "{{registration_id}}",
+                "confirm"
+              ]
+            },
+            "description": "Confirms a held registration before hold_expires_at. Expected response includes status confirmed and confirmed_at."
+          }
+        },
+        {
+          "name": "Cancel Registration",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/registrations/{{registration_id}}/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "registrations",
+                "{{registration_id}}",
+                "cancel"
+              ]
+            },
+            "description": "Cancels a held, confirmed, or waitlisted registration. Expected response includes status cancelled and cancelled_at."
+          }
+        },
+        {
+          "name": "Confirm Registration Missing Id",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/registrations/999999/confirm",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "registrations",
+                "999999",
+                "confirm"
+              ]
+            },
+            "description": "Exercises the shared not_found envelope for a missing registration. Expected HTTP status: 404."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Attendees",
+      "item": [
+        {
+          "name": "List Attendee Registrations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/attendees/{{attendee_id}}/registrations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "attendees",
+                "{{attendee_id}}",
+                "registrations"
+              ]
+            },
+            "description": "Lists registrations for one attendee with session/workshop context."
+          }
+        },
+        {
+          "name": "List Attendee Registrations Missing Attendee",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/attendees/999999/registrations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "attendees",
+                "999999",
+                "registrations"
+              ]
+            },
+            "description": "Exercises the shared not_found envelope for a missing attendee. Expected HTTP status: 404."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Show Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dashboard"
+              ]
+            },
+            "description": "Returns dashboard summary data for upcoming sessions and registration activity."
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "workshop_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "session_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "full_session_id",
+      "value": "2",
+      "type": "string"
+    },
+    {
+      "key": "unavailable_session_id",
+      "value": "3",
+      "type": "string"
+    },
+    {
+      "key": "overlapping_session_id",
+      "value": "4",
+      "type": "string"
+    },
+    {
+      "key": "attendee_name",
+      "value": "Alejandro Sardinas",
+      "type": "string"
+    },
+    {
+      "key": "attendee_email",
+      "value": "alejandro@example.com",
+      "type": "string"
+    },
+    {
+      "key": "topic",
+      "value": "Backend",
+      "type": "string"
+    },
+    {
+      "key": "sort",
+      "value": "created_at",
+      "type": "string"
+    },
+    {
+      "key": "order",
+      "value": "desc",
+      "type": "string"
+    },
+    {
+      "key": "page",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "per_page",
+      "value": "10",
+      "type": "string"
+    },
+    {
+      "key": "session_starts_at",
+      "value": "2026-08-01T14:00:00Z",
+      "type": "string"
+    },
+    {
+      "key": "session_ends_at",
+      "value": "2026-08-01T16:00:00Z",
+      "type": "string"
+    },
+    {
+      "key": "registration_id",
+      "type": "string",
+      "value": "1"
+    },
+    {
+      "key": "attendee_id",
+      "type": "string",
+      "value": "1"
+    },
+    {
+      "key": "cancellation_reason",
+      "type": "string",
+      "value": "Instructor unavailable"
+    },
+    {
+      "key": "available",
+      "type": "string",
+      "value": "true"
+    },
+    {
+      "key": "session_sort",
+      "type": "string",
+      "value": "starts_at"
+    }
+  ]
 }
