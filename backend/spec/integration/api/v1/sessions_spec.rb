@@ -164,4 +164,55 @@ RSpec.describe "API V1 Sessions", type: :request do
       end
     end
   end
+
+  path "/api/v1/sessions/{id}/cancel" do
+    post("cancel session") do
+      tags "Sessions"
+      consumes "application/json"
+      produces "application/json"
+      parameter name: :id, in: :path, type: :integer, required: true
+      parameter name: :cancellation_payload, in: :body, schema: {
+        type: :object,
+        properties: {
+          cancellation_reason: { type: :string, example: "Organizer emergency" }
+        },
+        required: %w[cancellation_reason]
+      }
+
+      response "200", "session cancelled" do
+        let(:id) { session.id }
+        let(:cancellation_payload) { { cancellation_reason: "Organizer emergency" } }
+
+        schema "$ref" => "#/components/schemas/session_cancellation_response"
+
+        run_test! do |response|
+          json = response.parsed_body
+          expect(json["status"]).to eq("cancelled")
+          expect(json["cancellation_reason"]).to eq("Organizer emergency")
+          expect(json["cancelled_counts"]).to be_present
+        end
+      end
+
+      response "422", "missing cancellation reason" do
+        let(:id) { session.id }
+        let(:cancellation_payload) { { cancellation_reason: "" } }
+
+        schema "$ref" => "#/components/schemas/error"
+
+        run_test! do |response|
+          json = response.parsed_body
+          expect(json["error"]["code"]).to eq("validation_error")
+        end
+      end
+
+      response "404", "session not found" do
+        let(:id) { 999999 }
+        let(:cancellation_payload) { { cancellation_reason: "Organizer emergency" } }
+
+        schema "$ref" => "#/components/schemas/error"
+
+        run_test!
+      end
+    end
+  end
 end
