@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1 class="text-h4 font-weight-bold mb-2">Dashboard</h1>
+    <h1 class="text-h4 font-weight-bold mb-2">Home</h1>
     <p class="text-body-1 text-medium-emphasis mb-6">
       Welcome to SeatForge. Use the sidebar to navigate.
     </p>
