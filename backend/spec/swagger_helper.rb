@@ -69,6 +69,8 @@ RSpec.configure do |config|
               ends_at: { type: :string, format: "date-time" },
               capacity: { type: :integer },
               status: { type: :string, enum: %w[scheduled cancelled completed] },
+              cancelled_at: { type: :string, format: "date-time", nullable: true },
+              cancellation_reason: { type: :string, nullable: true },
               workshop: {
                 type: :object,
                 properties: {
@@ -119,8 +121,29 @@ RSpec.configure do |config|
                   available_seats: { type: :integer }
                 }
               },
+              cancelled_at: { type: :string, format: "date-time", nullable: true },
+              cancellation_reason: { type: :string, nullable: true },
               created_at: { type: :string, format: "date-time" }
             }
+          },
+          session_cancellation_response: {
+            type: :object,
+            properties: {
+              id: { type: :integer },
+              status: { type: :string, enum: %w[cancelled] },
+              cancelled_at: { type: :string, format: "date-time", nullable: true },
+              cancellation_reason: { type: :string, nullable: true },
+              cancelled_counts: {
+                type: :object,
+                properties: {
+                  held: { type: :integer },
+                  confirmed: { type: :integer },
+                  waitlisted: { type: :integer }
+                },
+                required: %w[held confirmed waitlisted]
+              }
+            },
+            required: %w[id status cancelled_counts]
           },
           session_list: {
             type: :object,

@@ -33,6 +33,8 @@ module Api
             waitlist_count: counts["waitlisted"].to_i,
             available_seats: [session.capacity - counts["held"].to_i - counts["confirmed"].to_i, 0].max
           },
+          cancelled_at: session.cancelled_at,
+          cancellation_reason: session.cancellation_reason,
           created_at: session.created_at
         }
       end
@@ -42,6 +44,22 @@ module Api
         session = workshop.sessions.create!(session_params)
 
         render json: session, status: :created
+      end
+
+      def cancel
+        reason = params[:cancellation_reason] || params.dig(:session, :cancellation_reason)
+        result = Sessions::Cancel.call(
+          session_id: params[:id],
+          cancellation_reason: reason
+        )
+
+        render json: {
+          id: result.session.id,
+          status: result.session.status,
+          cancelled_at: result.session.cancelled_at,
+          cancellation_reason: result.session.cancellation_reason,
+          cancelled_counts: result.cancelled_counts
+        }, status: :ok
       end
 
       private
@@ -57,6 +75,8 @@ module Api
           ends_at: session.ends_at,
           capacity: session.capacity,
           status: session.status,
+          cancelled_at: session.cancelled_at,
+          cancellation_reason: session.cancellation_reason,
           workshop: {
             id: session.workshop.id,
             title: session.workshop.title,
