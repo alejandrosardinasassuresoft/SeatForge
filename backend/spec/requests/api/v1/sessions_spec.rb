@@ -109,4 +109,91 @@ RSpec.describe "Api::V1::Sessions", type: :request do
       expect(response.parsed_body["error"]["code"]).to eq("not_found")
     end
   end
+  describe "POST /api/v1/sessions/:id/cancel" do
+    let(:session_to_cancel) do
+      create(:session, workshop: workshop, starts_at: current_time + 3.days, ends_at: current_time + 3.days + 2.hours)
+    end
+    let(:valid_params) { { cancellation_reason: "Instructor unavailable" } }
+
+    it "cancels a session and returns prior-status registration counts" do
+      create(:registration, session: session_to_cancel, status: "held")
+      create(:registration, session: session_to_cancel, status: "confirmed", hold_expires_at: nil, confirmed_at: current_time)
+      create(:registration, session: session_to_cancel, status: "waitlisted", hold_expires_at: nil)
+      create(:registration, session: session_to_cancel, status: "expired", hold_expires_at: current_time - 1.minute)
+      create(:registration, session: session_to_cancel, status: "cancelled", cancelled_at: current_time - 1.day)
+
+      post "/api/v1/sessions/#{session_to_cancel.id}/cancel", params: valid_params
+
+      expect(response).to have_http_status(:ok)
+      json = response.parsed_body
+      expect(json["session"]).to include(
+        "id" => session_to_cancel.id,
+        "status" => "cancelled",
+        "cancellation_reason" => "Instructor unavailable"
+      )
+      expect(json["session"]["cancelled_at"]).to be_present
+      expect(json["cancelled_registrations"]).to eq("held" => 1, "confirmed" => 1, "waitlisted" => 1)
+      expect(json["cancelled_count"]).to eq(3)
+    end
+
+    it "returns validation_error when cancellation reason is missing" do
+      post "/api/v1/sessions/#{session_to_cancel.id}/cancel", params: {}
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response.parsed_body["error"]).to include("code" => "validation_error")
+    end
+
+    it "returns validation_error when cancellation reason is blank" do
+      post "/api/v1/sessions/#{session_to_cancel.id}/cancel", params: { cancellation_reason: "   " }
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response.parsed_body["error"]).to include("code" => "validation_error")
+    end
+
+    it "returns not_found for missing sessions" do
+      post "/api/v1/sessions/999999/cancel", params: valid_params
+
+      expect(response).to have_http_status(:not_found)
+      expect(response.parsed_body["error"]).to include("code" => "not_found")
+    end
+
+    it "returns a conflict envelope for sessions that cannot be cancelled" do
+      session_to_cancel.update!(status: "completed")
+
+      post "/api/v1/sessions/#{session_to_cancel.id}/cancel", params: valid_params
+
+      expect(response).to have_http_status(:conflict)
+      expect(response.parsed_body["error"]).to include("code" => "session_cancellation_unavailable")
+    end
+
+    it "is idempotent for repeated cancellation requests" do
+      create(:registration, session: session_to_cancel, status: "held")
+
+      post "/api/v1/sessions/#{session_to_cancel.id}/cancel", params: valid_params
+      first_cancelled_at = response.parsed_body["session"]["cancelled_at"]
+
+      post "/api/v1/sessions/#{session_to_cancel.id}/cancel", params: { cancellation_reason: "Retry reason" }
+
+      expect(response).to have_http_status(:ok)
+      json = response.parsed_body
+      expect(json["session"]["cancellation_reason"]).to eq("Instructor unavailable")
+      expect(json["session"]["cancelled_at"]).to eq(first_cancelled_at)
+      expect(json["cancelled_registrations"]).to eq("held" => 0, "confirmed" => 0, "waitlisted" => 0)
+      expect(json["cancelled_count"]).to eq(0)
+    end
+
+    it "rejects new registrations after cancellation" do
+      post "/api/v1/sessions/#{session_to_cancel.id}/cancel", params: valid_params
+
+      post "/api/v1/sessions/#{session_to_cancel.id}/registrations", params: {
+        attendee: {
+          name: "Alejandro Sardinas",
+          email: "alejandro@example.com"
+        }
+      }
+
+      expect(response).to have_http_status(:conflict)
+      expect(response.parsed_body["error"]).to include("code" => "registration_unavailable")
+    end
+  end
 end

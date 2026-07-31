@@ -8,6 +8,10 @@ Rails.application.routes.draw do
       end
 
       resources :sessions, only: [:index, :show] do
+        member do
+          post :cancel
+        end
+
         resources :registrations, only: [:create]
       end
 

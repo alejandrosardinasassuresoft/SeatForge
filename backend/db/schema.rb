@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_30_000004) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_31_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -31,13 +31,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_30_000004) do
     t.bigint "session_id", null: false
     t.string "status", null: false
     t.datetime "updated_at", null: false
-    t.index ["attendee_id", "session_id"], name: "index_registrations_on_active_attendee_session", unique: true, where: "((status)::text = ANY ((ARRAY['held'::character varying, 'confirmed'::character varying, 'waitlisted'::character varying])::text[]))"
+    t.index ["attendee_id", "session_id"], name: "index_registrations_on_active_attendee_session", unique: true, where: "((status)::text = ANY (ARRAY[('held'::character varying)::text, ('confirmed'::character varying)::text, ('waitlisted'::character varying)::text]))"
     t.index ["attendee_id"], name: "index_registrations_on_attendee_id"
     t.index ["session_id"], name: "index_registrations_on_session_id"
     t.index ["status"], name: "index_registrations_on_status"
   end
 
   create_table "sessions", force: :cascade do |t|
+    t.string "cancellation_reason"
+    t.datetime "cancelled_at"
     t.integer "capacity", null: false
     t.datetime "created_at", null: false
     t.datetime "ends_at", null: false
