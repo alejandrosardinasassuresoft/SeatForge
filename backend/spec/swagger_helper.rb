@@ -69,6 +69,8 @@ RSpec.configure do |config|
               ends_at: { type: :string, format: "date-time" },
               capacity: { type: :integer },
               status: { type: :string, enum: %w[scheduled cancelled completed] },
+              cancellation_reason: { type: :string, nullable: true },
+              cancelled_at: { type: :string, format: "date-time", nullable: true },
               workshop: {
                 type: :object,
                 properties: {
@@ -88,6 +90,8 @@ RSpec.configure do |config|
               ends_at: { type: :string, format: "date-time" },
               capacity: { type: :integer },
               status: { type: :string, enum: %w[scheduled cancelled completed] },
+              cancellation_reason: { type: :string, nullable: true },
+              cancelled_at: { type: :string, format: "date-time", nullable: true },
               created_at: { type: :string, format: "date-time" },
               updated_at: { type: :string, format: "date-time" }
             }
@@ -100,6 +104,8 @@ RSpec.configure do |config|
               ends_at: { type: :string, format: "date-time" },
               capacity: { type: :integer },
               status: { type: :string, enum: %w[scheduled cancelled completed] },
+              cancellation_reason: { type: :string, nullable: true },
+              cancelled_at: { type: :string, format: "date-time", nullable: true },
               workshop: {
                 type: :object,
                 properties: {
@@ -121,6 +127,32 @@ RSpec.configure do |config|
               },
               created_at: { type: :string, format: "date-time" }
             }
+          },
+          session_cancellation: {
+            type: :object,
+            properties: {
+              session: {
+                type: :object,
+                properties: {
+                  id: { type: :integer },
+                  status: { type: :string, enum: %w[cancelled] },
+                  cancellation_reason: { type: :string },
+                  cancelled_at: { type: :string, format: "date-time" }
+                },
+                required: %w[id status cancellation_reason cancelled_at]
+              },
+              cancelled_registrations: {
+                type: :object,
+                properties: {
+                  held: { type: :integer },
+                  confirmed: { type: :integer },
+                  waitlisted: { type: :integer }
+                },
+                required: %w[held confirmed waitlisted]
+              },
+              cancelled_count: { type: :integer }
+            },
+            required: %w[session cancelled_registrations cancelled_count]
           },
           session_list: {
             type: :object,
