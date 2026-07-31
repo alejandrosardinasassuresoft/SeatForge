@@ -11,15 +11,33 @@
     </VMain>
 
     <AppFooter />
+
+    <VSnackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+      location="bottom"
+      timeout="4000"
+      @update:model-value="(value) => !value && store.clearNotification()"
+    >
+      {{ snackbar.message }}
+      <template #actions>
+        <VBtn variant="text" @click="store.clearNotification()">Close</VBtn>
+      </template>
+    </VSnackbar>
   </VApp>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import AppHeader from './AppHeader.vue'
 import AppSidebar from './AppSidebar.vue'
 import AppFooter from './AppFooter.vue'
+import { useAppStore } from '@/stores/app'
+
+const store = useAppStore()
 
 const drawer = ref(true)
 const rail = ref(false)
+
+const snackbar = computed(() => store.snackbar)
 </script>

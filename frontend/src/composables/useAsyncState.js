@@ -1,4 +1,4 @@
-import { ref, readonly, toValue } from 'vue'
+import { ref, readonly, unref } from 'vue'
 
 export function useAsyncState(asyncFn) {
   const data = ref(null)
@@ -12,7 +12,7 @@ export function useAsyncState(asyncFn) {
     error.value = null
 
     try {
-      const fn = toValue(asyncFn)
+      const fn = unref(asyncFn)
       const result = await fn(...args)
       data.value = result
       status.value = 'success'

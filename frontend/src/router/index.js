@@ -5,7 +5,19 @@ const routes = [
     path: '/',
     name: 'home',
     component: () => import('@/pages/HomePage.vue'),
-    meta: { title: 'Dashboard' },
+    meta: { title: 'Home' },
+  },
+  {
+    path: '/dashboard',
+    name: 'operations-dashboard',
+    component: () => import('@/pages/DashboardView.vue'),
+    meta: { title: 'Operations Dashboard' },
+  },
+  {
+    path: '/my-registrations',
+    name: 'my-registrations',
+    component: () => import('@/pages/MyRegistrationsView.vue'),
+    meta: { title: 'My Registrations' },
   },
   {
     path: '/about',

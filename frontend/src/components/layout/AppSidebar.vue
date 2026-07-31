@@ -58,7 +58,9 @@ const internalDrawer = computed({
 })
 
 const navItems = [
-  { icon: 'mdi-view-dashboard-outline', label: 'Dashboard', to: '/' },
+  { icon: 'mdi-monitor-dashboard', label: 'Operations Dashboard', to: '/dashboard' },
+  { icon: 'mdi-ticket-account', label: 'My Registrations', to: '/my-registrations' },
+  { icon: 'mdi-view-dashboard-outline', label: 'Home', to: '/' },
   { icon: 'mdi-information-outline', label: 'About', to: '/about' },
 ]
 </script>

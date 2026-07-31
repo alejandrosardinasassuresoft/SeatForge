@@ -21,28 +21,29 @@ client.interceptors.response.use(
   (error) => {
     if (error.response) {
       const { status, data } = error.response
+      const envelope = data?.error ?? {}
       return Promise.reject({
         status,
-        errors: data?.errors ?? [{ title: 'Server Error', detail: error.message }],
-        data: data?.data ?? null,
-        meta: data?.meta ?? {},
+        code: envelope.code || 'unknown_error',
+        message: envelope.message || 'Unexpected server error.',
+        details: Array.isArray(envelope.details) ? envelope.details : [],
       })
     }
 
     if (error.request) {
       return Promise.reject({
         status: 0,
-        errors: [{ title: 'Network Error', detail: 'Unable to reach the server. Please check your connection.' }],
-        data: null,
-        meta: {},
+        code: 'network_error',
+        message: 'Unable to reach the server. Please check your connection.',
+        details: [],
       })
     }
 
     return Promise.reject({
       status: -1,
-      errors: [{ title: 'Request Error', detail: error.message }],
-      data: null,
-      meta: {},
+      code: 'request_error',
+      message: error.message || 'The request could not be completed.',
+      details: [],
     })
   },
 )
