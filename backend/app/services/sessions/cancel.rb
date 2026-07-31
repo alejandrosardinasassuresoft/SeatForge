@@ -1,6 +1,7 @@
 module Sessions
   class Cancel
     CANCELLABLE_REGISTRATION_STATUSES = %w[held confirmed waitlisted].freeze
+    NOTIFIABLE_REGISTRATION_STATUSES = %w[held confirmed].freeze
 
     Result = Struct.new(:session, :cancelled_counts, keyword_init: true)
 
@@ -15,6 +16,8 @@ module Sessions
     end
 
     def call
+      ensure_cancellation_reason!
+
       session = Session.find(session_id)
 
       Session.transaction do
@@ -24,10 +27,13 @@ module Sessions
             idempotent_result(session)
           else
             ensure_cancellable!(session)
-            cancel_session!(session)
-            cancelled_counts = cancel_registrations!(session)
+            registration_groups = registrations_by_status(session)
 
-            Result.new(session: session.reload, cancelled_counts: cancelled_counts)
+            cancel_session!(session)
+            cancel_registrations!(registration_groups.values.flatten)
+            enqueue_notifications!(registration_groups)
+
+            Result.new(session: session.reload, cancelled_counts: counts_for(registration_groups))
           end
         end
       end
@@ -36,6 +42,16 @@ module Sessions
     private
 
     attr_reader :session_id, :cancellation_reason, :current_time
+
+    def ensure_cancellation_reason!
+      return if cancellation_reason.present?
+
+      raise Api::Errors::ValidationError.new(
+        "Validation failed",
+        details: ["Cancellation reason is required"],
+        code: "validation_error"
+      )
+    end
 
     def idempotent_result(session)
       Result.new(session: session, cancelled_counts: zero_counts)
@@ -51,6 +67,12 @@ module Sessions
       )
     end
 
+    def registrations_by_status(session)
+      CANCELLABLE_REGISTRATION_STATUSES.index_with do |status|
+        session.registrations.where(status: status).to_a
+      end
+    end
+
     def cancel_session!(session)
       session.update!(
         status: "cancelled",
@@ -59,18 +81,26 @@ module Sessions
       )
     end
 
-    def cancel_registrations!(session)
-      scope = session.registrations.where(status: CANCELLABLE_REGISTRATION_STATUSES)
-      counts = zero_counts.merge(scope.group(:status).count.transform_keys(&:to_s))
+    def cancel_registrations!(registrations)
+      registrations.each do |registration|
+        registration.update!(
+          status: "cancelled",
+          cancelled_at: current_time.utc,
+          hold_expires_at: nil
+        )
+      end
+    end
 
-      scope.update_all(
-        status: "cancelled",
-        cancelled_at: current_time.utc,
-        hold_expires_at: nil,
-        updated_at: current_time.utc
-      )
+    def enqueue_notifications!(registration_groups)
+      NOTIFIABLE_REGISTRATION_STATUSES.each do |status|
+        registration_groups.fetch(status).each do |registration|
+          Registrations::SendNotificationJob.perform_later("session_cancelled", registration.id)
+        end
+      end
+    end
 
-      counts
+    def counts_for(registration_groups)
+      CANCELLABLE_REGISTRATION_STATUSES.index_with { |status| registration_groups.fetch(status).size }
     end
 
     def zero_counts

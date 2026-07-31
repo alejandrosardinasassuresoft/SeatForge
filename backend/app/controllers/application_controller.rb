@@ -3,6 +3,7 @@ class ApplicationController < ActionController::API
   rescue_from ActiveRecord::RecordInvalid, with: :render_record_invalid
   rescue_from ActiveRecord::RecordNotFound, with: :render_not_found
   rescue_from Api::Errors::ConflictError, with: :render_conflict
+  rescue_from Api::Errors::ValidationError, with: :render_custom_validation_error
 
   private
 
@@ -50,6 +51,15 @@ class ApplicationController < ActionController::API
       message: error.message,
       details: error.details,
       status: :conflict
+    )
+  end
+
+  def render_custom_validation_error(error)
+    render_api_error(
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      status: :unprocessable_entity
     )
   end
 end

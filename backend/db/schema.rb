@@ -38,7 +38,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_31_000001) do
   end
 
   create_table "sessions", force: :cascade do |t|
-    t.string "cancellation_reason"
+    t.text "cancellation_reason"
     t.datetime "cancelled_at"
     t.integer "capacity", null: false
     t.datetime "created_at", null: false

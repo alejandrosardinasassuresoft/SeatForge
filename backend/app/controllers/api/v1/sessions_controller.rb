@@ -33,6 +33,8 @@ module Api
             waitlist_count: counts["waitlisted"].to_i,
             available_seats: [session.capacity - counts["held"].to_i - counts["confirmed"].to_i, 0].max
           },
+          cancelled_at: session.cancelled_at,
+          cancellation_reason: session.cancellation_reason,
           created_at: session.created_at
         }
       end
@@ -50,7 +52,7 @@ module Api
           cancellation_reason: cancellation_reason_param
         )
 
-        render json: session_cancellation_json(result)
+        render json: session_cancellation_json(result), status: :ok
       end
 
       private
@@ -60,10 +62,7 @@ module Api
       end
 
       def cancellation_reason_param
-        reason = params.require(:cancellation_reason).to_s.strip
-        raise ActionController::ParameterMissing, :cancellation_reason if reason.blank?
-
-        reason
+        params[:cancellation_reason] || params.dig(:session, :cancellation_reason)
       end
 
       def session_list_json(session)
@@ -73,6 +72,8 @@ module Api
           ends_at: session.ends_at,
           capacity: session.capacity,
           status: session.status,
+          cancelled_at: session.cancelled_at,
+          cancellation_reason: session.cancellation_reason,
           workshop: {
             id: session.workshop.id,
             title: session.workshop.title,
@@ -82,6 +83,8 @@ module Api
       end
 
       def session_cancellation_json(result)
+        counts = result.cancelled_counts
+
         {
           session: {
             id: result.session.id,
@@ -89,8 +92,13 @@ module Api
             cancellation_reason: result.session.cancellation_reason,
             cancelled_at: result.session.cancelled_at
           },
-          cancelled_registrations: result.cancelled_counts,
-          cancelled_count: result.cancelled_counts.values.sum
+          cancelled_registrations: counts,
+          cancelled_count: counts.values.sum,
+          id: result.session.id,
+          status: result.session.status,
+          cancellation_reason: result.session.cancellation_reason,
+          cancelled_at: result.session.cancelled_at,
+          cancelled_counts: counts
         }
       end
     end

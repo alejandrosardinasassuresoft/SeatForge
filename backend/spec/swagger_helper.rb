@@ -150,7 +150,19 @@ RSpec.configure do |config|
                 },
                 required: %w[held confirmed waitlisted]
               },
-              cancelled_count: { type: :integer }
+              cancelled_count: { type: :integer },
+              id: { type: :integer },
+              status: { type: :string, enum: %w[cancelled] },
+              cancelled_at: { type: :string, format: "date-time", nullable: true },
+              cancellation_reason: { type: :string, nullable: true },
+              cancelled_counts: {
+                type: :object,
+                properties: {
+                  held: { type: :integer },
+                  confirmed: { type: :integer },
+                  waitlisted: { type: :integer }
+                }
+              }
             },
             required: %w[session cancelled_registrations cancelled_count]
           },
