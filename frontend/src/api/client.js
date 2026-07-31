@@ -21,12 +21,17 @@ client.interceptors.response.use(
   (error) => {
     if (error.response) {
       const { status, data } = error.response
-      const envelope = data?.error ?? {}
+      const apiError = data?.error
       return Promise.reject({
         status,
-        code: envelope.code || 'unknown_error',
-        message: envelope.message || 'Unexpected server error.',
-        details: Array.isArray(envelope.details) ? envelope.details : [],
+        code: apiError?.code ?? 'request_error',
+        message: apiError?.message ?? error.message,
+        details: apiError?.details ?? [],
+        errors: apiError
+          ? [{ title: apiError.code, detail: apiError.message }]
+          : data?.errors ?? [{ title: 'Server Error', detail: error.message }],
+        data: data ?? null,
+        meta: data?.meta ?? {},
       })
     }
 

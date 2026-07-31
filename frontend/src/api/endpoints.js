@@ -20,5 +20,9 @@ export const api = {
   sessions: {
     list: (params) => get('/sessions', { params }),
     get: (id) => get(`/sessions/${id}`),
+    register: (id, attendee) => post(`/sessions/${id}/registrations`, { attendee }),
+  },
+  registrations: {
+    confirm: (id) => post(`/registrations/${id}/confirm`),
   },
 }
