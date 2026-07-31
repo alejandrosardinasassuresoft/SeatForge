@@ -8,6 +8,18 @@ const routes = [
     meta: { title: 'Dashboard' },
   },
   {
+    path: '/workshops',
+    name: 'catalog',
+    component: () => import('@/pages/CatalogView.vue'),
+    meta: { title: 'Workshop Catalog' },
+  },
+  {
+    path: '/sessions/:id',
+    name: 'session-detail',
+    component: () => import('@/pages/SessionDetailView.vue'),
+    meta: { title: 'Session Details' },
+  },
+  {
     path: '/about',
     name: 'about',
     component: () => import('@/pages/AboutPage.vue'),
