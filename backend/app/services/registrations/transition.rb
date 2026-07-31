@@ -60,6 +60,8 @@ module Registrations
         hold_expires_at: nil,
         cancelled_at: nil
       )
+
+      SendNotificationJob.perform_later("confirmed", registration.id)
       registration
     end
 
@@ -86,6 +88,8 @@ module Registrations
         confirmed_at: nil,
         cancelled_at: nil
       )
+
+      SendNotificationJob.perform_later("promoted", registration.id)
       registration
     end
 
@@ -102,6 +106,8 @@ module Registrations
         confirmed_at: nil,
         cancelled_at: nil
       )
+
+      SendNotificationJob.perform_later("promoted", waitlisted_registration.id)
     end
   end
 end
