@@ -61,6 +61,7 @@ const navItems = [
   { icon: 'mdi-monitor-dashboard', label: 'Operations Dashboard', to: '/dashboard' },
   { icon: 'mdi-ticket-account', label: 'My Registrations', to: '/my-registrations' },
   { icon: 'mdi-view-dashboard-outline', label: 'Home', to: '/' },
+  { icon: 'mdi-store-outline', label: 'Catalog', to: '/workshops' },
   { icon: 'mdi-information-outline', label: 'About', to: '/about' },
 ]
 </script>

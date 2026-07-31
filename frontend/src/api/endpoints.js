@@ -13,4 +13,12 @@ export const api = {
   registrations: {
     cancel: (registrationId) => post(`/registrations/${registrationId}/cancel`),
   },
+  workshops: {
+    list: (params) => get('/workshops', { params }),
+    get: (id) => get(`/workshops/${id}`),
+  },
+  sessions: {
+    list: (params) => get('/sessions', { params }),
+    get: (id) => get(`/sessions/${id}`),
+  },
 }
