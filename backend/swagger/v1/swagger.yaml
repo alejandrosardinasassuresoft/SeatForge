@@ -1,0 +1,769 @@
+---
+openapi: 3.0.3
+info:
+  title: SeatForge API
+  version: v1
+  description: API for managing workshop session registrations, allocations, and waitlists
+servers:
+- url: http://localhost:3000
+  description: Development
+paths:
+  "/api/v1/attendees/{id}/registrations":
+    get:
+      summary: list attendee registrations
+      tags:
+      - Attendees
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: Attendee ID
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: attendee registrations list
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/attendee_registrations"
+        '404':
+          description: attendee not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+  "/api/v1/dashboard":
+    get:
+      summary: show dashboard metrics
+      tags:
+      - Dashboard
+      responses:
+        '200':
+          description: metrics returned
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/dashboard_metrics"
+  "/api/v1/health":
+    get:
+      summary: health check
+      tags:
+      - Health
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+  "/api/v1/sessions/{session_id}/registrations":
+    post:
+      summary: create registration
+      tags:
+      - Registrations
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '201':
+          description: registration created
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/registration_create"
+        '422':
+          description: invalid registration
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                session_id:
+                  type: integer
+                attendee:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    email:
+                      type: string
+                  required:
+                  - name
+                  - email
+              required:
+              - session_id
+              - attendee
+  "/api/v1/registrations/{id}/confirm":
+    post:
+      summary: confirm registration
+      tags:
+      - Registrations
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: registration confirmed
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/registration_create"
+        '404':
+          description: registration not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+        '409':
+          description: conflict (hold expired)
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+  "/api/v1/registrations/{id}/cancel":
+    post:
+      summary: cancel registration
+      tags:
+      - Registrations
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: registration cancelled
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/registration_create"
+        '404':
+          description: registration not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+  "/api/v1/workshops/{workshop_id}/sessions":
+    post:
+      summary: create session
+      tags:
+      - Sessions
+      parameters:
+      - name: workshop_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '201':
+          description: session created
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/session"
+        '404':
+          description: workshop not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+        '422':
+          description: invalid session
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                session:
+                  type: object
+                  properties:
+                    starts_at:
+                      type: string
+                      format: date-time
+                    ends_at:
+                      type: string
+                      format: date-time
+                    capacity:
+                      type: integer
+                    status:
+                      type: string
+                      enum:
+                      - scheduled
+                      - cancelled
+                      - completed
+                  required:
+                  - starts_at
+                  - ends_at
+                  - capacity
+                  - status
+              required:
+              - session
+  "/api/v1/sessions":
+    get:
+      summary: list sessions
+      tags:
+      - Sessions
+      parameters:
+      - name: topic
+        in: query
+        required: false
+        description: Filter by workshop topic
+        schema:
+          type: string
+      - name: from
+        in: query
+        format: date-time
+        required: false
+        description: Filter sessions starting at or after this time (ISO 8601)
+        schema:
+          type: string
+      - name: to
+        in: query
+        format: date-time
+        required: false
+        description: Filter sessions ending at or before this time (ISO 8601)
+        schema:
+          type: string
+      - name: available
+        in: query
+        required: false
+        description: "Set to \"true\" to show only sessions with available seats:\n
+          * `true` \n * `false` \n "
+        enum:
+        - 'true'
+        - 'false'
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        description: Sort column (starts_at, capacity, created_at)
+        enum:
+        - starts_at
+        - capacity
+        - created_at
+        schema:
+          type: string
+      - name: order
+        in: query
+        required: false
+        description: Sort direction (asc, desc)
+        enum:
+        - asc
+        - desc
+        schema:
+          type: string
+      - name: page
+        in: query
+        required: false
+        description: Page number
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        required: false
+        description: Results per page (max 50)
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: sessions found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/session_list"
+  "/api/v1/sessions/{id}":
+    get:
+      summary: show session
+      tags:
+      - Sessions
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: session found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/session_detail"
+        '404':
+          description: session not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+  "/api/v1/workshops":
+    get:
+      summary: list workshops
+      tags:
+      - Workshops
+      parameters:
+      - name: topic
+        in: query
+        required: false
+        description: Filter by topic (case-insensitive)
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        description: "Sort column (title, created_at, topic):\n * `title` \n * `created_at`
+          \n * `topic` \n "
+        enum:
+        - title
+        - created_at
+        - topic
+        schema:
+          type: string
+      - name: order
+        in: query
+        required: false
+        description: Sort direction (asc, desc)
+        enum:
+        - asc
+        - desc
+        schema:
+          type: string
+      - name: page
+        in: query
+        required: false
+        description: Page number
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        required: false
+        description: Results per page (max 100)
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: workshops found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/workshop_list"
+    post:
+      summary: create workshop
+      tags:
+      - Workshops
+      parameters: []
+      responses:
+        '201':
+          description: workshop created
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/workshop"
+        '422':
+          description: invalid workshop
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workshop:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
+                    topic:
+                      type: string
+                    active:
+                      type: boolean
+                  required:
+                  - title
+                  - description
+                  - topic
+              required:
+              - workshop
+  "/api/v1/workshops/{id}":
+    get:
+      summary: show workshop
+      tags:
+      - Workshops
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: workshop found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/workshop"
+        '404':
+          description: workshop not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+components:
+  schemas:
+    error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: array
+              items:
+                type: string
+          required:
+          - code
+          - message
+          - details
+      required:
+      - error
+    pagination:
+      type: object
+      properties:
+        current_page:
+          type: integer
+        per_page:
+          type: integer
+        total_records:
+          type: integer
+        total_pages:
+          type: integer
+      required:
+      - current_page
+      - per_page
+      - total_records
+      - total_pages
+    workshop:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        topic:
+          type: string
+        active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    workshop_list:
+      type: object
+      properties:
+        workshops:
+          type: array
+          items:
+            "$ref": "#/components/schemas/workshop"
+        pagination:
+          "$ref": "#/components/schemas/pagination"
+    session_list_item:
+      type: object
+      properties:
+        id:
+          type: integer
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+        capacity:
+          type: integer
+        status:
+          type: string
+          enum:
+          - scheduled
+          - cancelled
+          - completed
+        workshop:
+          type: object
+          properties:
+            id:
+              type: integer
+            title:
+              type: string
+            topic:
+              type: string
+    session:
+      type: object
+      properties:
+        id:
+          type: integer
+        workshop_id:
+          type: integer
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+        capacity:
+          type: integer
+        status:
+          type: string
+          enum:
+          - scheduled
+          - cancelled
+          - completed
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    session_detail:
+      type: object
+      properties:
+        id:
+          type: integer
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+        capacity:
+          type: integer
+        status:
+          type: string
+          enum:
+          - scheduled
+          - cancelled
+          - completed
+        workshop:
+          type: object
+          properties:
+            id:
+              type: integer
+            title:
+              type: string
+            topic:
+              type: string
+            description:
+              type: string
+        availability:
+          type: object
+          properties:
+            capacity:
+              type: integer
+            held_count:
+              type: integer
+            confirmed_count:
+              type: integer
+            waitlist_count:
+              type: integer
+            available_seats:
+              type: integer
+        created_at:
+          type: string
+          format: date-time
+    session_list:
+      type: object
+      properties:
+        sessions:
+          type: array
+          items:
+            "$ref": "#/components/schemas/session_list_item"
+        pagination:
+          "$ref": "#/components/schemas/pagination"
+    attendee:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+    registration_session:
+      type: object
+      properties:
+        id:
+          type: integer
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+        workshop_title:
+          type: string
+    registration:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+          enum:
+          - held
+          - confirmed
+          - waitlisted
+          - cancelled
+          - expired
+        session_id:
+          type: integer
+        session:
+          "$ref": "#/components/schemas/registration_session"
+        hold_expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        confirmed_at:
+          type: string
+          format: date-time
+          nullable: true
+        cancelled_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+    attendee_registrations:
+      type: object
+      properties:
+        attendee:
+          "$ref": "#/components/schemas/attendee"
+        registrations:
+          type: array
+          items:
+            "$ref": "#/components/schemas/registration"
+    dashboard_metrics:
+      type: object
+      properties:
+        upcoming_scheduled_sessions:
+          type: integer
+        total_held:
+          type: integer
+        total_confirmed:
+          type: integer
+        total_waitlisted:
+          type: integer
+        expired_holds_today:
+          type: integer
+        full_sessions:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              starts_at:
+                type: string
+                format: date-time
+              capacity:
+                type: integer
+              workshop:
+                type: string
+              confirmed:
+                type: integer
+        top_waitlisted_sessions:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              starts_at:
+                type: string
+                format: date-time
+              capacity:
+                type: integer
+              workshop:
+                type: string
+              waitlist_size:
+                type: integer
+    registration_create:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+          enum:
+          - held
+          - confirmed
+          - waitlisted
+          - cancelled
+          - expired
+        session_id:
+          type: integer
+        attendee:
+          "$ref": "#/components/schemas/attendee"
+        hold_expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        confirmed_at:
+          type: string
+          format: date-time
+          nullable: true
+        cancelled_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+    registration_create_payload:
+      type: object
+      properties:
+        session_id:
+          type: integer
+        attendee:
+          type: object
+          properties:
+            name:
+              type: string
+            email:
+              type: string
+          required:
+          - name
+          - email
+      required:
+      - session_id
+      - attendee

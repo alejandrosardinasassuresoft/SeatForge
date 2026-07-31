@@ -29,6 +29,9 @@ gem "bootsnap", require: false
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 gem "rack-cors"
 
+# Required by rswag-ui under Ruby 4.0+
+gem "ostruct"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
@@ -44,6 +47,9 @@ group :development, :test do
   gem "factory_bot_rails"
   gem "database_cleaner-active_record"
   gem "shoulda-matchers"
+  gem "rswag-specs"
+  gem "rswag-api"
+  gem "rswag-ui"
 end
 
 
