@@ -165,6 +165,38 @@ RSpec.describe "API V1 Sessions", type: :request do
     end
   end
 
+  path "/api/v1/sessions/{id}/availability" do
+    get("show derived session availability") do
+      tags "Sessions"
+      produces "application/json"
+      parameter name: :id, in: :path, type: :integer, required: true
+
+      response "200", "availability found" do
+        let(:id) { session.id }
+
+        schema type: :object,
+               required: %w[capacity held_seats confirmed_seats waitlist_size available_seats],
+               properties: {
+                 capacity: { type: :integer },
+                 held_seats: { type: :integer },
+                 confirmed_seats: { type: :integer },
+                 waitlist_size: { type: :integer },
+                 available_seats: { type: :integer }
+               }
+
+        run_test!
+      end
+
+      response "404", "session not found" do
+        let(:id) { 999999 }
+
+        schema "$ref" => "#/components/schemas/error"
+
+        run_test!
+      end
+    end
+  end
+
   path "/api/v1/sessions/{id}/cancel" do
     post("cancel session") do
       tags "Sessions"

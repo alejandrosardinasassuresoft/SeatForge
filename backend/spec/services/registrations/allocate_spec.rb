@@ -46,6 +46,13 @@ RSpec.describe Registrations::Allocate do
     expect(registration.hold_expires_at).to be_nil
   end
 
+  it "allocates a held seat when an earlier hold has expired" do
+    create(:registration, session: session, status: "held", hold_expires_at: current_time)
+    create(:registration, session: session, status: "confirmed", hold_expires_at: nil, confirmed_at: current_time)
+
+    expect(allocate.registration.status).to eq("held")
+  end
+
   it "does not let repeated allocations exceed active capacity" do
     capacity_one_session = create(
       :session,
@@ -62,7 +69,7 @@ RSpec.describe Registrations::Allocate do
       )
     end
 
-    expect(capacity_one_session.registrations.active_capacity_consumers.count).to eq(1)
+    expect(capacity_one_session.registrations.active_capacity_consumers(current_time).count).to eq(1)
     expect(capacity_one_session.registrations.where(status: "waitlisted").count).to eq(2)
   end
 

@@ -93,7 +93,7 @@ RSpec.describe "API V1 Registrations", type: :request do
         run_test!
       end
 
-      response "409", "conflict (hold expired)" do
+      response "422", "expired hold" do
         let(:id) { registration.id }
         let!(:registration) do
           create(:registration, session: session, status: "held",

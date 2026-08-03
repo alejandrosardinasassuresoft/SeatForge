@@ -11,6 +11,30 @@
     <VCard class="pa-4 mb-6" variant="outlined">
       <VRow align="center" density="comfortable">
         <VCol cols="12" sm="6" md="3">
+          <VTextField
+            v-model="filters.from"
+            label="From date"
+            type="date"
+            density="compact"
+            variant="outlined"
+            hide-details
+            @update:model-value="fetchSessions(1)"
+          />
+        </VCol>
+
+        <VCol cols="12" sm="6" md="3">
+          <VTextField
+            v-model="filters.to"
+            label="To date"
+            type="date"
+            density="compact"
+            variant="outlined"
+            hide-details
+            @update:model-value="fetchSessions(1)"
+          />
+        </VCol>
+
+        <VCol cols="12" sm="6" md="3">
           <VSelect
             v-model="filters.topic"
             :items="topicOptions"
@@ -177,6 +201,8 @@ const pagination = reactive({
 })
 
 const filters = reactive({
+  from: null,
+  to: null,
   topic: null,
   sort: 'starts_at',
   order: 'asc',
@@ -214,6 +240,8 @@ const fetchSessions = async (page = pagination.current_page) => {
       order: filters.order,
     }
     if (filters.topic) params.topic = filters.topic
+    if (filters.from) params.from = filters.from
+    if (filters.to) params.to = filters.to
     if (filters.available) params.available = 'true'
 
     const res = await api.sessions.list(params)

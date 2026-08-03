@@ -13,6 +13,7 @@ Rails.application.routes.draw do
       resources :sessions, only: [:index, :show] do
         member do
           post :cancel
+          get :availability
         end
 
         resources :registrations, only: [:create]

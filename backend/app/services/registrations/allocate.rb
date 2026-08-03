@@ -92,7 +92,7 @@ module Registrations
     end
 
     def create_registration!(attendee, session)
-      if session.available_seats.positive?
+      if SessionAvailabilityQuery.call(session: session, current_time: current_time).available_seats.positive?
         Registration.create!(
           attendee: attendee,
           session: session,

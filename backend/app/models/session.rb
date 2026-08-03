@@ -16,12 +16,12 @@ class Session < ApplicationRecord
     status == "scheduled" && starts_at.present? && starts_at > at_time
   end
 
-  def capacity_consumers_count
-    registrations.active_capacity_consumers.count
+  def capacity_consumers_count(at_time = Time.current)
+    registrations.active_capacity_consumers(at_time).count
   end
 
-  def available_seats
-    [capacity - capacity_consumers_count, 0].max
+  def available_seats(at_time = Time.current)
+    [capacity - capacity_consumers_count(at_time), 0].max
   end
 
   def waitlist_count

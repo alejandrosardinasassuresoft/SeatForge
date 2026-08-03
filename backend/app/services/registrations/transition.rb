@@ -17,7 +17,8 @@ module Registrations
       registration = Registration.find(registration_id)
 
       Registration.transaction do
-        registration.with_lock do
+        registration.session.with_lock do
+          registration.lock!
           registration.reload
           case action
           when "confirm"
@@ -46,11 +47,19 @@ module Registrations
     def confirm!(registration)
       return registration if registration.status == "confirmed"
 
-      if registration.status == "held" && registration.hold_expires_at.present? && registration.hold_expires_at <= current_time
-        raise Api::Errors::ConflictError.new(
+      if registration.status == "held" && (registration.hold_expires_at.blank? || registration.hold_expires_at <= current_time)
+        raise Api::Errors::ValidationError.new(
           "Registration hold expired before confirmation",
           details: ["The hold window has expired"],
           code: "hold_expired"
+        )
+      end
+
+      unless registration.status == "held"
+        raise Api::Errors::ConflictError.new(
+          "Registration is not eligible for confirmation",
+          details: ["Only an unexpired held registration can be confirmed"],
+          code: "registration_conflict"
         )
       end
 

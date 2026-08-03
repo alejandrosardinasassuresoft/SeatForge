@@ -61,7 +61,15 @@ class SessionSearchQuery
     return sessions unless params[:available] == "true"
 
     sessions.where(
-      "capacity > (SELECT COUNT(*) FROM registrations WHERE registrations.session_id = sessions.id AND registrations.status IN ('held', 'confirmed'))"
+      <<~SQL.squish,
+        capacity > (
+          SELECT COUNT(*) FROM registrations
+          WHERE registrations.session_id = sessions.id
+            AND (registrations.status = 'confirmed'
+              OR (registrations.status = 'held' AND registrations.hold_expires_at > :current_time))
+        )
+      SQL
+      current_time: Time.current
     )
   end
 

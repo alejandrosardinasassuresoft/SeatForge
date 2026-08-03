@@ -109,7 +109,7 @@ const availability = computed(() => session.value?.availability || {
   held_count: 0,
   waitlist_count: 0,
 })
-const canRegister = computed(() => session.value?.status !== 'cancelled')
+const canRegister = computed(() => session.value?.status === 'scheduled')
 const canConfirm = computed(() => registration.value?.status === 'held' && canRegister.value && !confirmationLoading.value)
 const registrationAlertType = computed(() => registration.value?.status === 'waitlisted' ? 'warning' : registration.value?.status === 'confirmed' ? 'success' : 'info')
 const registrationAlertTitle = computed(() => {

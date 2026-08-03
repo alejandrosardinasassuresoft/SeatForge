@@ -305,6 +305,27 @@
           }
         },
         {
+          "name": "Get Session Availability",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/sessions/{{session_id}}/availability",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sessions",
+                "{{session_id}}",
+                "availability"
+              ]
+            },
+            "description": "Returns derived capacity: confirmed registrations plus only unexpired holds consume seats. Expected fields: capacity, held_seats, confirmed_seats, waitlist_size, and available_seats."
+          }
+        },
+        {
           "name": "Cancel Session",
           "request": {
             "method": "POST",

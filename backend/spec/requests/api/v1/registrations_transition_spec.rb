@@ -26,6 +26,29 @@ RSpec.describe "Api::V1::Registrations transitions", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body["status"]).to eq("confirmed")
     end
+
+    it "returns hold_expired in the validation envelope at the expiration boundary" do
+      registration = create(:registration, session: session_record, status: "held", hold_expires_at: current_time)
+
+      post "/api/v1/registrations/#{registration.id}/confirm"
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response.parsed_body.fetch("error")).to include(
+        "code" => "hold_expired",
+        "message" => "Registration hold expired before confirmation"
+      )
+      expect(registration.reload.status).to eq("held")
+    end
+
+    it "returns a conflict envelope for a waitlisted registration" do
+      registration = create(:registration, session: session_record, status: "waitlisted", hold_expires_at: nil)
+
+      post "/api/v1/registrations/#{registration.id}/confirm"
+
+      expect(response).to have_http_status(:conflict)
+      expect(response.parsed_body.dig("error", "code")).to eq("registration_conflict")
+      expect(registration.reload.status).to eq("waitlisted")
+    end
   end
 
   describe "POST /api/v1/registrations/:id/cancel" do

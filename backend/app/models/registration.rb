@@ -10,7 +10,14 @@ class Registration < ApplicationRecord
   validates :status, presence: true, inclusion: { in: STATUSES }
   validate :single_active_registration, if: :active_status?
 
-  scope :active_capacity_consumers, -> { where(status: CAPACITY_CONSUMING_STATUSES) }
+  scope :active_capacity_consumers, lambda { |at_time = Time.current|
+    where(
+      "status = :confirmed OR (status = :held AND hold_expires_at > :at_time)",
+      confirmed: "confirmed",
+      held: "held",
+      at_time: at_time
+    )
+  }
   scope :active_for_schedule_conflicts, -> { where(status: SCHEDULE_CONFLICT_STATUSES) }
   scope :overlapping_session_window, lambda { |session|
     joins(:session)
