@@ -25,6 +25,14 @@ Frontend-facing routes live under `/api/v1`. Shared JSON errors use this envelop
 
 See `backend/docs/api_error_contract.md` for the full list of error codes and `backend/swagger/v1/swagger.yaml` for the OpenAPI spec. The generated interactive docs run at `http://localhost:3000/api-docs`.
 
+## Attendee booking flow
+
+Use `GET /api/v1/sessions/:id/availability` to read the authoritative booking counts. It returns `capacity`, `held_seats`, `confirmed_seats`, `waitlist_size`, and `available_seats`; only holds with an expiry later than the current UTC time consume a seat.
+
+Create a booking with `POST /api/v1/sessions/:session_id/registrations` and an `attendee` name/email body. A `held` response includes `hold_expires_at`; confirm it before that UTC time through `POST /api/v1/registrations/:id/confirm`. A full session instead returns a `waitlisted` registration. Confirmation at or after expiry returns `422` with error code `hold_expired`.
+
+For a manual Phase 3 demo, browse or filter the Vue catalogue, open a scheduled session, submit the registration form, and verify the held or waitlisted result. Confirm a held registration, then refresh the detail view or availability endpoint to observe the derived counts. Cancel through My Registrations and verify the history and availability refresh. Finally cancel a session through the API, refresh its detail page, and verify the reason/time and disabled booking controls.
+
 ## Session Cancellation
 
 Organizers cancel a scheduled session that has not started through:

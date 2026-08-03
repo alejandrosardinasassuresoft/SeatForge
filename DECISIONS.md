@@ -24,7 +24,7 @@ The design is intentionally simple and does not yet represent a full transition 
 Capacity must be derived from domain state rather than from a manually editable counter.
 
 ### Decision
-The system treats `held` and `confirmed` registrations as capacity consumers. `waitlisted` registrations do not consume capacity.
+The system treats `confirmed` registrations and only `held` registrations with `hold_expires_at > Time.current` as capacity consumers. `waitlisted` registrations and expired holds do not consume capacity.
 
 ### Alternatives considered
 - Persisting an `available_seats` column that could drift from reality.
@@ -35,6 +35,14 @@ This keeps availability derived from the source of truth and prevents stale or i
 
 ### Trade-offs
 The logic depends on the registration status values remaining consistent and well understood by the team.
+
+## 8. Hold confirmation eligibility
+
+### Decision
+Only an unexpired `held` registration can transition to `confirmed`. Confirming an already-confirmed registration is idempotent; confirming a hold at or after its expiry returns the `422 hold_expired` error envelope, and confirming waitlisted, cancelled, or expired registrations returns a lifecycle conflict without mutation.
+
+### Why this approach was selected
+The Rails service remains the lifecycle authority even when a Vue countdown or button state is stale. This protects capacity and gives every client the same UTC boundary behavior.
 
 ## 3. Query API for registration state
 

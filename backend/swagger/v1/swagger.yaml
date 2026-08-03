@@ -129,8 +129,8 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/error"
-        '409':
-          description: conflict (hold expired)
+        '422':
+          description: expired hold
           content:
             application/json:
               schema:
@@ -311,6 +311,47 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/session_detail"
+        '404':
+          description: session not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+  "/api/v1/sessions/{id}/availability":
+    get:
+      summary: show derived session availability
+      tags:
+      - Sessions
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: availability found
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - capacity
+                - held_seats
+                - confirmed_seats
+                - waitlist_size
+                - available_seats
+                properties:
+                  capacity:
+                    type: integer
+                  held_seats:
+                    type: integer
+                  confirmed_seats:
+                    type: integer
+                  waitlist_size:
+                    type: integer
+                  available_seats:
+                    type: integer
         '404':
           description: session not found
           content:

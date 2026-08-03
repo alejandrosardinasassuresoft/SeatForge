@@ -102,6 +102,16 @@ RSpec.describe "Api::V1::Sessions", type: :request do
       expect(json["availability"]["available_seats"]).to eq(session.capacity - 2)
     end
 
+    it "excludes a hold at the expiry boundary from availability" do
+      session = Session.order(:starts_at).first
+      create(:registration, session: session, status: "held", hold_expires_at: current_time)
+
+      get "/api/v1/sessions/#{session.id}"
+
+      expect(response.parsed_body.dig("availability", "held_seats")).to eq(0)
+      expect(response.parsed_body.dig("availability", "available_seats")).to eq(session.capacity)
+    end
+
     it "returns 404 for missing session" do
       get "/api/v1/sessions/999999"
 
@@ -109,6 +119,34 @@ RSpec.describe "Api::V1::Sessions", type: :request do
       expect(response.parsed_body["error"]["code"]).to eq("not_found")
     end
   end
+
+  describe "GET /api/v1/sessions/:id/availability" do
+    it "returns the documented derived counts" do
+      session = Session.order(:starts_at).first
+      create(:registration, session: session, status: "held", hold_expires_at: current_time + 1.minute)
+      create(:registration, session: session, status: "confirmed", hold_expires_at: nil, confirmed_at: current_time)
+      create(:registration, session: session, status: "waitlisted", hold_expires_at: nil)
+
+      get "/api/v1/sessions/#{session.id}/availability"
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to include(
+        "capacity" => session.capacity,
+        "held_seats" => 1,
+        "confirmed_seats" => 1,
+        "waitlist_size" => 1,
+        "available_seats" => 1
+      )
+    end
+
+    it "returns the standard not-found envelope" do
+      get "/api/v1/sessions/999999/availability"
+
+      expect(response).to have_http_status(:not_found)
+      expect(response.parsed_body.dig("error", "code")).to eq("not_found")
+    end
+  end
+
   describe "POST /api/v1/sessions/:id/cancel" do
     let(:session_to_cancel) do
       create(:session, workshop: workshop, starts_at: current_time + 3.days, ends_at: current_time + 3.days + 2.hours)

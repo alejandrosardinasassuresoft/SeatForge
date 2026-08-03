@@ -10,9 +10,6 @@ export const api = {
   dashboard: {
     show: () => get('/dashboard'),
   },
-  registrations: {
-    cancel: (registrationId) => post(`/registrations/${registrationId}/cancel`),
-  },
   workshops: {
     list: (params) => get('/workshops', { params }),
     get: (id) => get(`/workshops/${id}`),
@@ -20,9 +17,11 @@ export const api = {
   sessions: {
     list: (params) => get('/sessions', { params }),
     get: (id) => get(`/sessions/${id}`),
+    availability: (id) => get(`/sessions/${id}/availability`),
     register: (id, attendee) => post(`/sessions/${id}/registrations`, { attendee }),
   },
   registrations: {
     confirm: (id) => post(`/registrations/${id}/confirm`),
+    cancel: (id) => post(`/registrations/${id}/cancel`),
   },
 }

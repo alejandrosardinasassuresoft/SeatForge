@@ -35,10 +35,17 @@ RSpec.describe Registrations::Transition do
         expect { transition }.not_to change { registration.reload.status }
       end
 
-      it "raises a hold_expired conflict when the hold has already expired" do
+      it "raises a hold_expired validation error when the hold has already expired" do
         registration.update!(hold_expires_at: current_time - 1.minute)
 
-        expect { transition }.to raise_error(Api::Errors::ConflictError) { |error| expect(error.code).to eq("hold_expired") }
+        expect { transition }.to raise_error(Api::Errors::ValidationError) { |error| expect(error.code).to eq("hold_expired") }
+      end
+
+      it "rejects an ineligible waitlisted registration without changing it" do
+        registration.update!(status: "waitlisted", hold_expires_at: nil)
+
+        expect { transition }.to raise_error(Api::Errors::ConflictError) { |error| expect(error.code).to eq("registration_conflict") }
+        expect(registration.reload.status).to eq("waitlisted")
       end
     end
 

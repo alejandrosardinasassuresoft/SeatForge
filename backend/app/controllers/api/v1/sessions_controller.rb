@@ -12,7 +12,6 @@ module Api
 
       def show
         session = Session.includes(:workshop).find(params[:id])
-        counts = session.registrations.group(:status).count
 
         render json: {
           id: session.id,
@@ -26,17 +25,17 @@ module Api
             topic: session.workshop.topic,
             description: session.workshop.description
           },
-          availability: {
-            capacity: session.capacity,
-            held_count: counts["held"].to_i,
-            confirmed_count: counts["confirmed"].to_i,
-            waitlist_count: counts["waitlisted"].to_i,
-            available_seats: [session.capacity - counts["held"].to_i - counts["confirmed"].to_i, 0].max
-          },
+          availability: availability_json(session),
           cancelled_at: session.cancelled_at,
           cancellation_reason: session.cancellation_reason,
           created_at: session.created_at
         }
+      end
+
+      def availability
+        session = Session.find(params[:id])
+
+        render json: availability_json(session)
       end
 
       def create
@@ -66,6 +65,8 @@ module Api
       end
 
       def session_list_json(session)
+        availability = SessionAvailabilityQuery.call(session: session)
+
         {
           id: session.id,
           starts_at: session.starts_at,
@@ -74,11 +75,28 @@ module Api
           status: session.status,
           cancelled_at: session.cancelled_at,
           cancellation_reason: session.cancellation_reason,
+          available_seats: availability.available_seats,
           workshop: {
             id: session.workshop.id,
             title: session.workshop.title,
             topic: session.workshop.topic
           }
+        }
+      end
+
+      def availability_json(session)
+        availability = SessionAvailabilityQuery.call(session: session)
+
+        {
+          capacity: availability.capacity,
+          held_seats: availability.held_seats,
+          confirmed_seats: availability.confirmed_seats,
+          waitlist_size: availability.waitlist_size,
+          available_seats: availability.available_seats,
+          # Backward-compatible aliases for the existing Vue detail view.
+          held_count: availability.held_seats,
+          confirmed_count: availability.confirmed_seats,
+          waitlist_count: availability.waitlist_size
         }
       end
 
