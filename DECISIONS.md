@@ -1,138 +1,132 @@
-# Technical Decisions
+# SeatForge Technical Decisions
 
-## 1. Registration lifecycle status model
+This record captures the architectural choices that govern the delivered lifecycle. Timestamps and comparisons below use UTC unless stated otherwise.
 
-### Context
-The platform needs a consistent interpretation of registration states so that capacity, waitlist ordering, and hold expiration behave consistently across the domain layer and future lifecycle services.
-
-### Decision
-SeatForge uses the canonical registration statuses `held`, `confirmed`, `waitlisted`, `cancelled`, and `expired` on the `Registration` model.
-
-### Alternatives considered
-- Using separate boolean flags for each lifecycle state.
-- Storing lifecycle state in a separate table.
-
-### Why this approach was selected
-A single status field keeps the model simple, matches Rails conventions, and makes the query layer explicit and reusable for later services and APIs.
-
-### Trade-offs
-The design is intentionally simple and does not yet represent a full transition audit history.
-
-## 2. Capacity and active-registration interpretation
+## 1. Derive capacity under the session locking boundary
 
 ### Context
-Capacity must be derived from domain state rather than from a manually editable counter.
-
-### Decision
-The system treats `confirmed` registrations and only `held` registrations with `hold_expires_at > Time.current` as capacity consumers. `waitlisted` registrations and expired holds do not consume capacity.
+Several attendees can allocate, confirm, cancel, or be promoted at the same time. A mutable `available_seats` counter can drift from registrations and allows race conditions when read/update steps are split.
 
 ### Alternatives considered
-- Persisting an `available_seats` column that could drift from reality.
-- Treating all active registrations as capacity consumers.
 
-### Why this approach was selected
-This keeps availability derived from the source of truth and prevents stale or inconsistent capacity numbers.
+- Persist and decrement/increment an `available_seats` column.
+- Count all non-terminal registrations as capacity consumers.
+- Derive counts while serializing requests with application-only locks.
+
+### Decision and rationale
+
+Capacity is derived as `capacity - (confirmed + unexpired held)`. A held registration consumes a seat only when its `hold_expires_at` is later than the current UTC time. Allocation and state transitions lock the session row inside the database transaction, making the persisted registration records the single source of truth.
 
 ### Trade-offs
-The logic depends on the registration status values remaining consistent and well understood by the team.
 
-## 8. Hold confirmation eligibility
+Availability queries perform counts rather than reading one counter, and the lifecycle code must consistently use the shared query/service boundary. The cost is acceptable for challenge-scale sessions and prevents stale capacity.
 
-### Decision
-Only an unexpired `held` registration can transition to `confirmed`. Confirming an already-confirmed registration is idempotent; confirming a hold at or after its expiry returns the `422 hold_expired` error envelope, and confirming waitlisted, cancelled, or expired registrations returns a lifecycle conflict without mutation.
-
-### Why this approach was selected
-The Rails service remains the lifecycle authority even when a Vue countdown or button state is stale. This protects capacity and gives every client the same UTC boundary behavior.
-
-## 3. Query API for registration state
+## 2. Model lifecycle as explicit statuses with safe, idempotent transitions
 
 ### Context
-The lifecycle work and later APIs need a stable, reusable way to answer questions such as “who is consuming capacity?”, “who is eligible for promotion?”, and “which holds have expired?”
-
-### Decision
-The `Registration` model exposes explicit query scopes for these concerns:
-- `active_capacity_consumers`
-- `eligible_waitlist_order`
-- `expired_holds`
+Attendee requests can be retried after a timeout or submitted from stale Vue state. Confirmation, cancellation, promotion, and expiry need a consistent state model.
 
 ### Alternatives considered
-- Scattering SQL fragments in controllers and services.
-- Re-implementing the same filters in multiple places.
 
-### Why this approach was selected
-The scopes make the semantics clear and keep the domain logic centralized.
+- Use separate boolean columns for every state.
+- Permit controllers or the client to decide whether a transition is valid.
+- Return an error for every repeated terminal request.
+
+### Decision and rationale
+
+Registrations use `held`, `confirmed`, `waitlisted`, `cancelled`, and `expired`. Services own transitions under the session lock. Confirmation accepts only an unexpired hold; already-confirmed behavior is idempotent, expired holds return `422 hold_expired`, and ineligible statuses do not mutate. Session cancellation is also idempotent and returns its persisted cancellation metadata on repeat.
 
 ### Trade-offs
-The implementation prioritizes clarity and reuse over a more abstract query object layer.
 
-## 4. Seed data and reproducibility
+Clients must reconcile response state rather than infer success from a button click, and some repeat requests need response inspection to distinguish first execution from a no-op. In return, retries preserve data integrity.
+
+## 3. Separate job discovery, lifecycle mutation, and notification delivery
 
 ### Context
-The project needs demo data that is deterministic and can be reloaded without manual database editing.
-
-### Decision
-Seed data is defined in `backend/db/seeds.rb` and uses `find_or_create_by!` so the seed process is repeatable from a clean database.
+Expired holds must release capacity and promote a waitlisted attendee without external delivery failures changing registration state.
 
 ### Alternatives considered
-- Hard-coded fixtures only for local development.
-- Manual database edits for demos.
 
-### Why this approach was selected
-Keeping the data in one seed file makes local setup reproducible and lowers the risk of drift.
+- Run the expiry transition directly in a controller or notification job.
+- Send notifications synchronously inside the database transaction.
+- Require a concrete third-party provider to run local tests.
+
+### Decision and rationale
+
+`Registrations::ExpireHoldsJob` discovers expired holds, locks each session, expires eligible holds, and promotes the oldest waitlisted registration. `Registrations::SendNotificationJob` runs after the state change through a replaceable `NotificationAdapter`. Confirmation, promotion, and eligible session cancellation enqueue notifications only after lifecycle persistence succeeds.
 
 ### Trade-offs
-The seed set is intentionally compact and focused on the required scenarios rather than exhaustive sample data.
 
-## 5. Session cancellation idempotency result
+The repository requires a deployment-selected scheduler and queue adapter; it intentionally does not include production scheduler/provider configuration. Notification delivery is eventually consistent, while lifecycle correctness is immediate and testable without credentials.
+
+## 4. Use UTC as the lifecycle time boundary
 
 ### Context
-Organizer cancellation (`POST /api/v1/sessions/:id/cancel`) may be retried because of network failures, double-clicks, or stale client state. The operation must not apply its side effects twice.
-
-### Decision
-Cancelling a session is idempotent. Repeating the request on an already-cancelled session returns `200 OK` with the persisted cancellation metadata and a zeroed `cancelled_registrations` count, and enqueues no duplicate notifications. The session is locked for the duration of the cancellation transaction so concurrent cancellations serialize into the same terminal state.
+Holds, confirmation, cancellation, and background jobs can run from hosts or browsers in different time zones. A local-time comparison makes expiration behavior ambiguous at the boundary.
 
 ### Alternatives considered
-- Rejecting a repeated cancellation with an error that forces the client to reconcile state.
-- Allowing repeat cancellation to overwrite the original reason or timestamp.
 
-### Why this approach was selected
-Returning the persisted result makes retries safe and matches how clients naturally recover from failed requests. Rejecting duplicates would require clients to handle a non-idempotent terminal operation.
+- Compare browser-local timestamps.
+- Store local workshop times without a canonical comparison zone.
+- Treat a hold as valid at its exact expiry instant.
+
+### Decision and rationale
+
+Rails persists and returns timestamps in UTC, and lifecycle rules compare against `Time.current` at the service/job boundary. A hold is valid only when `hold_expires_at > current_time`; equality is expired. The Vue client displays backend-provided timestamps and the backend remains authoritative for stale actions.
 
 ### Trade-offs
-The response cannot distinguish a first-time cancellation from a repeated one by status code alone; clients must inspect `cancelled_count` to tell whether this request performed the cancellation.
 
-## 6. Unchanged-status rule for session cancellation
+Presenters and users must interpret API timestamps as UTC unless the UI converts them for display. The explicit boundary eliminates timezone-dependent capacity results.
+
+## 5. Keep cancellation transactional while preserving terminal history
 
 ### Context
-A cancelled session must leave every affected registration in a consistent terminal state, but already-terminal registrations must not be rewritten or re-counted.
-
-### Decision
-`held`, `confirmed`, and `waitlisted` registrations are cancelled together with the session in the same transaction. `expired` and already-`cancelled` registrations are left unchanged, and the response reports cancellation counts only for registrations this request actually cancelled.
+Thursday's change request requires organizers to cancel a scheduled session with a reason, without leaving registrations or notification effects inconsistent.
 
 ### Alternatives considered
-- Cancelling every registration on the session regardless of prior status.
-- Leaving `held`/`confirmed` registrations intact so attendees keep their seats.
 
-### Why this approach was selected
-Rewriting terminal registrations would destroy audit information (original `cancelled_at`/`hold_expires_at`) and inflate the summary counts. Cancelling active registrations is required so capacity and waitlist state cannot outlive a cancelled session.
+- Cancel the session and registrations in separate requests.
+- Rewrite every registration status during cancellation.
+- Reject duplicate cancellation calls.
 
-### Trade-offs
-Because the rule is per-registration-status, the service must enumerate registrations by status within the locked transaction rather than issuing a single bulk update.
+### Decision and rationale
 
-## 7. Notification eligibility for session cancellation
-
-### Context
-Attendees whose active booking is cancelled need to know the session is gone, but not every cancelled registration warrants a notification.
-
-### Decision
-The cancellation service enqueues one notification per `held` or `confirmed` registration cancelled by the request. `waitlisted`, `expired`, and already-`cancelled` registrations never trigger a notification, and a repeated (idempotent) cancellation enqueues none.
-
-### Alternatives considered
-- Notifying every registration affected by the cancellation, including waitlisted attendees.
-- Enqueuing a single session-wide notification with no per-registration routing.
-
-### Why this approach was selected
-Only `held` and `confirmed` attendees hold a real seat that the cancellation takes away, so they are the ones with stale booking state. Routing by registration enables the existing per-registration job boundary and keeps payloads precise.
+`POST /api/v1/sessions/:id/cancel` locks the session and updates the session plus held, confirmed, and waitlisted registrations in one transaction. Expired and already-cancelled registrations remain unchanged. Held/confirmed attendees receive one queued cancellation notification; waitlisted/terminal registrations do not. Repeated cancellation returns the original metadata and no new side effects.
 
 ### Trade-offs
-Waitlisted attendees are not proactively notified of the session's cancellation, so the catalogue must instead surface the cancelled status, reason, and cancellation time to all attendees.
+
+The service has explicit per-status handling and reports counts for registrations changed by that call. This is more detailed than a bulk update but preserves audit meaning and retry safety.
+
+## Thursday change-control record � session cancellation
+
+### Trigger and impact
+
+The Thursday change request introduced mandatory organizer session cancellation, cancellation notifications, and attendee-facing cancelled-session presentation. It affected shared session/registration lifecycle behavior, the API contract, OpenAPI/Postman examples, Vue action availability, and final delivery documentation.
+
+### Ticket updates and owners
+
+| Ticket | Accepted update | Owner |
+| --- | --- | --- |
+| SEAT-025 | Transactional, idempotent session cancellation with reason and registration updates | Alejandro |
+| SEAT-026 | Notification eligibility and lifecycle regression protection | Carlos |
+| SEAT-033 | Cancelled-session presentation, disabled invalid actions, README/API/demo updates | Josoe |
+
+Alejandro owned the backend contract and coordinated the lifecycle impact; Carlos owned job/notification safeguards; Josoe owned the Vue presentation handoff.
+
+### Accepted scope
+
+- Add the cancellation fields, route, error handling, locking transaction, and idempotent response.
+- Cancel held/confirmed/waitlisted registrations while preserving expired/already-cancelled history.
+- Enqueue notifications only for held/confirmed registrations affected by the first cancellation.
+- Present cancellation reason/time in Vue and prevent invalid registration/confirmation actions.
+- Update Swagger, Postman, README, decisions, and the manual demo path.
+
+### Deferred scope
+
+- Optional automated frontend cancellation tests were replaced by a documented manual demo path for the fixed deadline.
+- The Phase 4 cross-browser regression matrix was reduced to critical supported-browser checks.
+- Authentication/authorization, external notification credentials, and a production scheduler remain outside this challenge scope.
+
+### Scope-control outcome
+
+The team preserved the capacity, locking, UTC, and lifecycle test boundaries. The change was delivered as focused, reviewed PRs rather than broadening the underlying API contract or duplicating lifecycle decisions in the frontend.
